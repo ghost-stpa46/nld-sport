@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coach — noLackinDiscipline</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+
+<div class="dash-layout">
+
+  <!-- SIDEBAR OVERLAY (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-logo">NLD</span>
+    </div>
+    <div class="sidebar-section-title">Clients</div>
+    <div class="sidebar-search">
+      <input type="text" id="searchInput" placeholder="Rechercher un client…" oninput="filterClients(this.value)" />
+    </div>
+    <div class="client-list" id="clientList">
+      <div class="loading-overlay"><span class="loading-spinner"></span> Chargement…</div>
+    </div>
+    <div class="sidebar-footer">
+      <button class="btn btn-primary" style="width:100%" onclick="openModal('modalAddClient')">+ Ajouter un client</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-menu-btn btn-icon" onclick="toggleSidebar()" aria-label="Menu">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <span class="topbar-logo">NLD</span>
+        <span class="topbar-client-name" id="topbarClientName" style="display:none"></span>
+      </div>
+      <div class="topbar-right">
+        <div class="user-chip">
+          <span class="dot"></span>
+          <span id="coachName">Coach</span>
+        </div>
+        <button class="btn-logout" onclick="handleLogout()">Déconnexion</button>
+      </div>
+    </header>
+
+    <!-- PAGE AREA -->
+    <div class="page-area" id="pageArea">
+
+      <!-- Aucun client sélectionné -->
+      <div class="select-client-state" id="selectClientState">
+        <div class="big-logo">NLD</div>
+        <p style="font-size:16px;font-weight:600;color:var(--text)">Sélectionne un client</p>
+        <p style="font-size:13px;color:var(--text-muted)">Choisis un client dans la liste pour accéder à son suivi complet.</p>
+      </div>
+
+      <!-- Détail client -->
+      <div id="clientDetail" style="display:none">
+
+        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <h1 class="page-title" id="clientFullName">—</h1>
+            <p class="page-sub" id="clientMeta">—</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="openEditClient()">Modifier profil</button>
+          </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs-bar" id="tabsBar">
+          <button class="tab-btn active" onclick="switchTab('apercu')">Aperçu</button>
+          <button class="tab-btn" onclick="switchTab('mesures')">Mesures</button>
+          <button class="tab-btn" onclick="switchTab('seances')">Séances</button>
+          <button class="tab-btn" onclick="switchTab('nutrition')">Nutrition</button>
+          <button class="tab-btn" onclick="switchTab('objectifs')">Objectifs</button>
+          <button class="tab-btn" onclick="switchTab('compterendus')">Compte-rendus</button>
+        </div>
+
+        <!-- ── TAB : APERÇU ── -->
+        <div class="tab-panel active" id="tab-apercu">
+          <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+              <div class="stat-label">Séances totales</div>
+              <div class="stat-value" id="statSeances">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Poids actuel</div>
+              <div class="stat-value" id="statPoids">—<span class="stat-unit">kg</span></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Objectifs atteints</div>
+              <div class="stat-value" id="statObjectifs">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Score nutrition moy.</div>
+              <div class="stat-value" id="statNutrition">—<span class="stat-unit">/10</span></div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Évolution du poids</span>
+              </div>
+              <div class="card-body">
+                <div class="chart-wrap"><canvas id="weightChartCoach"></canvas></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Dernière note coach</span>
+              </div>
+              <div class="card-body" id="lastNoteCoach">
+                <p style="color:var(--text-muted);font-size:13px">Aucune note pour l'instant.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TAB : MESURES ── -->
+        <div class="tab-panel" id="tab-mesures">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Historique des mesures</span>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modalAddMesure')">+ Ajouter</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Poids</th>
+                    <th>MG %</th>
+                    <th>Poitrine</th>
+                    <th>Taille</th>
+                    <th>Hanches</th>
+                    <th>Bras</th>
+                    <th>Cuisse</th>
+                    <th>Notes</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="mesuresBody">
+                  <tr><td colspan="10" class="card-empty">Aucune mesure.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TAB : SÉANCES ── -->
+        <div class="tab-panel" id="tab-seances">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Séances</span>
+              <button class="btn btn-primary btn-sm" onclick="openAddSeance()">+ Ajouter</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Titre</th>
+                    <th>Programme</th>
+                    <th>Durée</th>
+                    <th>Complétée</th>
+                    <th>Note client</th>
+                    <th>Note coach</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="seancesBody">
+                  <tr><td colspan="8" class="card-empty">Aucune séance.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TAB : NUTRITION ── -->
+        <div class="tab-panel" id="tab-nutrition">
+          <div class="grid-2" style="margin-bottom:20px">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Plan nutritionnel actuel</span>
+                <button class="btn btn-secondary btn-sm" id="btnEditPlan" onclick="openEditNutrition()">Modifier</button>
+              </div>
+              <div class="card-body" id="nutritionPlanBody">
+                <div class="empty-state">
+                  <div class="empty-icon">🥗</div>
+                  <p class="empty-title">Aucun plan actif</p>
+                  <button class="btn btn-primary btn-sm" onclick="openEditNutrition()">Créer un plan</button>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Historique des logs</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Date</th><th>Score</th><th>Notes</th></tr></thead>
+                  <tbody id="nutritionLogsBody">
+                    <tr><td colspan="3" class="card-empty">Aucun log.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TAB : OBJECTIFS ── -->
+        <div class="tab-panel" id="tab-objectifs">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+            <button class="btn btn-primary btn-sm" onclick="openModal('modalAddObjectif')">+ Ajouter un objectif</button>
+          </div>
+          <div id="objectifsList">
+            <div class="empty-state">
+              <div class="empty-icon">🎯</div>
+              <p class="empty-title">Aucun objectif</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TAB : COMPTE-RENDUS ── -->
+        <div class="tab-panel" id="tab-compterendus">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+            <button class="btn btn-primary btn-sm" onclick="openModal('modalAddCR')">+ Nouveau compte-rendu</button>
+          </div>
+          <div id="crList">
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <p class="empty-title">Aucun compte-rendu</p>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /clientDetail -->
+    </div><!-- /page-area -->
+  </div><!-- /main-content -->
+</div><!-- /dash-layout -->
+
+<!-- ══════════════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════════════ -->
+
+<!-- MODAL : Ajouter client -->
+<div class="modal-overlay" id="modalAddClient">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 class="modal-title">Ajouter un client</h3>
+      <button class="modal-close" onclick="closeModal('modalAddClient')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info" style="margin-bottom:16px">
+        Un email d'invitation sera envoyé au client. Il devra définir son mot de passe.
+      </div>
+      <div class="form-grid">
+        <div class="form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field-group">
+            <label>Prénom *</label>
+            <input type="text" id="nc_prenom" placeholder="Prénom" />
+          </div>
+          <div class="field-group">
+            <label>Nom *</label>
+            <input type="text" id="nc_nom" placeholder="Nom" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Email *</label>
+          <input type="email" id="nc_email" placeholder="client@email.com" />
+        </div>
+        <div class="field-group">
+          <label>Téléphone</label>
+          <input type="tel" id="nc_tel" placeholder="06 00 00 00 00" />
+        </div>
+        <div class="field-group">
+          <label>Objectif principal</label>
+          <select id="nc_objectif">
+            <option value="">Sélectionner…</option>
+            <option>Perte de poids</option>
+            <option>Prise de masse musculaire</option>
+            <option>Performance sportive</option>
+            <option>Remise en forme générale</option>
+            <option>Bien-être &amp; santé</option>
+            <option>Préparation compétition</option>
+            <option>Autre</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Niveau</label>
+          <select id="nc_niveau">
+            <option value="Débutant">Débutant</option>
+            <option value="Intermédiaire">Intermédiaire</option>
+            <option value="Avancé">Avancé</option>
+          </select>
+        </div>
+      </div>
+      <div id="addClientError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAddClient')">Annuler</button>
+      <button class="btn btn-primary" onclick="addClient()">Envoyer l'invitation</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL : Modifier profil client -->
+<div class="modal-overlay" id="modalEditClient">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 class="modal-title">Modifier le profil</h3>
+      <button class="modal-close" onclick="closeModal('modalEditClient')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field-group">
+            <label>Prénom</label>
+            <input type="text" id="ec_prenom" />
+          </div>
+          <div class="field-group">
+            <label>Nom</label>
+            <input type="text" id="ec_nom" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Téléphone</label>
+          <input type="tel" id="ec_tel" />
+        </div>
+        <div class="field-group">
+          <label>Objectif principal</label>
+          <select id="ec_objectif">
+            <option value="">Sélectionner…</option>
+            <option>Perte de poids</option>
+            <option>Prise de masse musculaire</option>
+            <option>Performance sportive</option>
+            <option>Remise en forme générale</option>
+            <option>Bien-être &amp; santé</option>
+            <option>Préparation compétition</option>
+            <option>Autre</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Niveau</label>
+          <select id="ec_niveau">
+            <option value="Débutant">Débutant</option>
+            <option value="Intermédiaire">Intermédiaire</option>
+            <option value="Avancé">Avancé</option>
+          </select>
+        </div>
+      </div>
+      <div id="editClientError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalEditClient')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveEditClient()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL : Ajouter mesure -->
+<div class="modal-overlay" id="modalAddMesure">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Nouvelle mesure</h3>
+      <button class="modal-close" onclick="closeModal('modalAddMesure')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field-group" style="grid-column:1/-1">
+          <label>Date *</label>
+          <input type="date" id="m_date" />
+        </div>
+        <div class="field-group">
+          <label>Poids (kg)</label>
+          <input type="number" step="0.1" id="m_poids" placeholder="75.0" />
+        </div>
+        <div class="field-group">
+          <label>Masse grasse (%)</label>
+          <input type="number" step="0.1" id="m_mg" placeholder="15.0" />
+        </div>
+        <div class="field-group">
+          <label>Tour poitrine (cm)</label>
+          <input type="number" step="0.5" id="m_poitrine" placeholder="95" />
+        </div>
+        <div class="field-group">
+          <label>Tour taille (cm)</label>
+          <input type="number" step="0.5" id="m_taille" placeholder="80" />
+        </div>
+        <div class="field-group">
+          <label>Tour hanches (cm)</label>
+          <input type="number" step="0.5" id="m_hanches" placeholder="95" />
+        </div>
+        <div class="field-group">
+          <label>Tour bras (cm)</label>
+          <input type="number" step="0.5" id="m_bras" placeholder="35" />
+        </div>
+        <div class="field-group">
+          <label>Tour cuisse (cm)</label>
+          <input type="number" step="0.5" id="m_cuisse" placeholder="55" />
+        </div>
+        <div class="field-group" style="grid-column:1/-1">
+          <label>Notes</label>
+          <textarea id="m_notes" rows="2" placeholder="Observations…"></textarea>
+        </div>
+      </div>
+      <div id="mesureError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAddMesure')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveMesure()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL : Ajouter/Éditer séance -->
+<div class="modal-overlay" id="modalAddSeance">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modalSeanceTitle">Nouvelle séance</h3>
+      <button class="modal-close" onclick="closeModal('modalAddSeance')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="display:grid;gap:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field-group">
+            <label>Date *</label>
+            <input type="date" id="s_date" />
+          </div>
+          <div class="field-group">
+            <label>Durée (min)</label>
+            <input type="number" id="s_duree" placeholder="60" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Titre *</label>
+          <input type="text" id="s_titre" placeholder="Ex : Séance A — Poussée" />
+        </div>
+        <div class="field-group">
+          <label>Programme</label>
+          <input type="text" id="s_programme" placeholder="Ex : Full body, PPL, …" />
+        </div>
+        <div class="field-group">
+          <label class="check-label" style="text-transform:none;font-size:13px;letter-spacing:0">
+            <input type="checkbox" id="s_completee" />
+            Séance complétée
+          </label>
+        </div>
+        <div class="field-group">
+          <label>Note coach (interne)</label>
+          <textarea id="s_notes_coach" rows="3" placeholder="Observations, points d'amélioration…"></textarea>
+        </div>
+      </div>
+      <div id="seanceError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAddSeance')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveSeance()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL : Nutrition plan -->
+<div class="modal-overlay" id="modalEditNutrition">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 class="modal-title">Plan nutritionnel</h3>
+      <button class="modal-close" onclick="closeModal('modalEditNutrition')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="display:grid;gap:14px">
+        <div class="field-group">
+          <label>Titre du plan *</label>
+          <input type="text" id="n_titre" placeholder="Ex : Phase prise de masse — Semaine 1" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px">
+          <div class="field-group">
+            <label>Calories cible</label>
+            <input type="number" id="n_calories" placeholder="2200" />
+          </div>
+          <div class="field-group">
+            <label>Protéines (g)</label>
+            <input type="number" id="n_proteines" placeholder="160" />
+          </div>
+          <div class="field-group">
+            <label>Glucides (g)</label>
+            <input type="number" id="n_glucides" placeholder="240" />
+          </div>
+          <div class="field-group">
+            <label>Lipides (g)</label>
+            <input type="number" id="n_lipides" placeholder="70" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Contenu du plan (détail des repas, conseils…)</label>
+          <textarea id="n_contenu" rows="8" placeholder="Petit-déjeuner : …&#10;Déjeuner : …&#10;Dîner : …&#10;Collations : …"></textarea>
+        </div>
+      </div>
+      <div id="nutritionError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalEditNutrition')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveNutritionPlan()">Enregistrer le plan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL : Ajouter objectif -->
+<div class="modal-overlay" id="modalAddObjectif">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Nouvel objectif</h3>
+      <button class="modal-close" onclick="closeModal('modalAddObjectif')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="display:grid;gap:12px">
+        <div class="field-group">
+          <label>Titre *</label>
+          <input type="text" id="o_titre" placeholder="Ex : Perdre 5 kg" />
+        </div>
+        <div class="field-group">
+          <label>Description</label>
+          <textarea id="o_desc" rows="3" placeholder="Détails de l'objectif…"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field-group">
+            <label>Date cible</label>
+            <input type="date" id="o_date_cible" />
+          </div>
+          <div class="field-group">
+            <label>Statut</label>
+            <select id="o_statut">
+              <option value="en_cours">En cours</option>
+              <option value="atteint">Atteint</option>
+              <option value="abandonne">Abandonné</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="objectifError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAddObjectif')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveObjectif()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL : Compte-rendu -->
+<div class="modal-overlay" id="modalAddCR">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 class="modal-title">Nouveau compte-rendu</h3>
+      <button class="modal-close" onclick="closeModal('modalAddCR')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="display:grid;gap:12px">
+        <div class="field-group">
+          <label>Date *</label>
+          <input type="date" id="cr_date_display" style="display:none" />
+        </div>
+        <div class="field-group">
+          <label>Séance liée (optionnel)</label>
+          <select id="cr_seance_id">
+            <option value="">Aucune séance associée</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Contenu *</label>
+          <textarea id="cr_contenu" rows="8" placeholder="Compte-rendu détaillé de la séance, progression observée, points à travailler…"></textarea>
+        </div>
+      </div>
+      <div id="crError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAddCR')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveCR()">Publier</button>
+    </div>
+  </div>
+</div>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script type="module">
+import { sb } from './supabase-config.js';
+
+// ────────────────────────────────────────────────────────────
+// STATE
+// ────────────────────────────────────────────────────────────
+let currentCoach   = null;
+let allClients     = [];
+let selectedClient = null;
+let currentTab     = 'apercu';
+let editingSeanceId = null;
+let currentPlanId  = null;
+let weightChart    = null;
+
+// ────────────────────────────────────────────────────────────
+// AUTH GUARD
+// ────────────────────────────────────────────────────────────
+async function requireCoach() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return false; }
+
+  const { data: profile } = await sb
+    .from('profiles').select('*').eq('id', session.user.id).single();
+
+  if (!profile || profile.role !== 'coach') {
+    window.location.href = 'login.html';
+    return false;
+  }
+  currentCoach = profile;
+  document.getElementById('coachName').textContent = `${profile.prenom || ''} ${profile.nom || ''}`.trim() || 'Coach';
+  return true;
+}
+
+// ────────────────────────────────────────────────────────────
+// INIT
+// ────────────────────────────────────────────────────────────
+async function init() {
+  const ok = await requireCoach();
+  if (!ok) return;
+  await loadClients();
+  setDefaultDates();
+}
+
+function setDefaultDates() {
+  const today = new Date().toISOString().split('T')[0];
+  ['m_date','s_date'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = today;
+  });
+}
+
+// ────────────────────────────────────────────────────────────
+// CLIENTS
+// ────────────────────────────────────────────────────────────
+async function loadClients() {
+  const { data, error } = await sb
+    .from('profiles')
+    .select('*')
+    .eq('coach_id', currentCoach.id)
+    .eq('role', 'client')
+    .order('prenom');
+
+  const list = document.getElementById('clientList');
+  if (error) { list.innerHTML = '<p style="padding:12px;color:var(--red)">Erreur de chargement.</p>'; return; }
+
+  allClients = data || [];
+  renderClientList(allClients);
+}
+
+function renderClientList(clients) {
+  const list = document.getElementById('clientList');
+  if (!clients.length) {
+    list.innerHTML = '<p style="padding:16px;color:var(--text-muted);font-size:13px;text-align:center">Aucun client.</p>';
+    return;
+  }
+  list.innerHTML = clients.map(c => `
+    <div class="client-item ${selectedClient?.id === c.id ? 'active' : ''}"
+         onclick="selectClient('${c.id}')">
+      <div class="client-avatar">${initials(c.prenom, c.nom)}</div>
+      <div class="client-info">
+        <div class="client-name">${esc(c.prenom)} ${esc(c.nom)}</div>
+        <div class="client-meta">${esc(c.objectif || c.email || '')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.filterClients = function(q) {
+  const filtered = allClients.filter(c =>
+    `${c.prenom} ${c.nom} ${c.email}`.toLowerCase().includes(q.toLowerCase())
+  );
+  renderClientList(filtered);
+};
+
+window.selectClient = async function(clientId) {
+  selectedClient = allClients.find(c => c.id === clientId);
+  if (!selectedClient) return;
+
+  document.getElementById('selectClientState').style.display = 'none';
+  document.getElementById('clientDetail').style.display = 'block';
+  document.getElementById('clientFullName').textContent = `${selectedClient.prenom} ${selectedClient.nom}`;
+  document.getElementById('clientMeta').textContent = [
+    selectedClient.objectif, selectedClient.niveau, selectedClient.email
+  ].filter(Boolean).join(' · ');
+  document.getElementById('topbarClientName').textContent = `${selectedClient.prenom} ${selectedClient.nom}`;
+  document.getElementById('topbarClientName').style.display = '';
+
+  // Highlight active in sidebar
+  renderClientList(allClients);
+  closeSidebar();
+  switchTab('apercu');
+};
+
+// ────────────────────────────────────────────────────────────
+// TABS
+// ────────────────────────────────────────────────────────────
+window.switchTab = async function(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    const tabs = ['apercu','mesures','seances','nutrition','objectifs','compterendus'];
+    btn.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+
+  if (!selectedClient) return;
+  if (tab === 'apercu')       await loadApercu();
+  if (tab === 'mesures')      await loadMesures();
+  if (tab === 'seances')      await loadSeances();
+  if (tab === 'nutrition')    await loadNutrition();
+  if (tab === 'objectifs')    await loadObjectifs();
+  if (tab === 'compterendus') await loadCR();
+};
+
+// ────────────────────────────────────────────────────────────
+// APERÇU
+// ────────────────────────────────────────────────────────────
+async function loadApercu() {
+  const cid = selectedClient.id;
+
+  const [{ data: seances }, { data: mesures }, { data: objectifs }, { data: logs }] = await Promise.all([
+    sb.from('seances').select('completee,notes_coach,date').eq('client_id', cid).order('date', { ascending: false }),
+    sb.from('mesures').select('poids,date').eq('client_id', cid).order('date', { ascending: false }),
+    sb.from('objectifs').select('statut').eq('client_id', cid),
+    sb.from('logs_nutrition').select('respect_score').eq('client_id', cid),
+  ]);
+
+  document.getElementById('statSeances').textContent = seances?.filter(s => s.completee).length ?? '—';
+
+  const lastPoids = mesures?.[0]?.poids;
+  document.getElementById('statPoids').innerHTML = lastPoids
+    ? `${lastPoids}<span class="stat-unit">kg</span>` : '—';
+
+  const atteints = objectifs?.filter(o => o.statut === 'atteint').length ?? 0;
+  document.getElementById('statObjectifs').textContent = atteints;
+
+  const scores = (logs || []).map(l => l.respect_score).filter(Boolean);
+  const avgScore = scores.length ? (scores.reduce((a,b) => a+b, 0) / scores.length).toFixed(1) : '—';
+  document.getElementById('statNutrition').innerHTML = avgScore !== '—'
+    ? `${avgScore}<span class="stat-unit">/10</span>` : '—';
+
+  // Last note coach
+  const lastNote = seances?.find(s => s.notes_coach);
+  document.getElementById('lastNoteCoach').innerHTML = lastNote
+    ? `<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">${formatDate(lastNote.date)}</p>
+       <p style="font-size:13px;line-height:1.6;white-space:pre-wrap">${esc(lastNote.notes_coach)}</p>`
+    : '<p style="color:var(--text-muted);font-size:13px">Aucune note pour l\'instant.</p>';
+
+  // Weight chart
+  const pts = (mesures || []).slice().reverse().filter(m => m.poids);
+  if (weightChart) weightChart.destroy();
+  const ctx = document.getElementById('weightChartCoach').getContext('2d');
+  weightChart = new Chart(ctx, buildLineChart(
+    pts.map(m => formatDate(m.date)),
+    pts.map(m => m.poids),
+    'Poids (kg)'
+  ));
+}
+
+// ────────────────────────────────────────────────────────────
+// MESURES
+// ────────────────────────────────────────────────────────────
+async function loadMesures() {
+  const { data, error } = await sb
+    .from('mesures').select('*').eq('client_id', selectedClient.id).order('date', { ascending: false });
+
+  const body = document.getElementById('mesuresBody');
+  if (error || !data?.length) {
+    body.innerHTML = '<tr><td colspan="10" class="card-empty">Aucune mesure enregistrée.</td></tr>';
+    return;
+  }
+  body.innerHTML = data.map(m => `
+    <tr>
+      <td>${formatDate(m.date)}</td>
+      <td>${m.poids ?? '—'} kg</td>
+      <td>${m.masse_grasse != null ? m.masse_grasse + ' %' : '—'}</td>
+      <td class="muted">${m.tour_poitrine ?? '—'} cm</td>
+      <td class="muted">${m.tour_taille ?? '—'} cm</td>
+      <td class="muted">${m.tour_hanches ?? '—'} cm</td>
+      <td class="muted">${m.tour_bras ?? '—'} cm</td>
+      <td class="muted">${m.tour_cuisse ?? '—'} cm</td>
+      <td class="muted" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.notes || '')}</td>
+      <td>
+        <button class="btn-icon" title="Supprimer" onclick="deleteMesure('${m.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+window.saveMesure = async function() {
+  const cid = selectedClient.id;
+  const date = document.getElementById('m_date').value;
+  if (!date) { showModalError('mesureError', 'La date est requise.'); return; }
+
+  const payload = {
+    client_id: cid,
+    date,
+    poids:         parseFloatOrNull('m_poids'),
+    masse_grasse:  parseFloatOrNull('m_mg'),
+    tour_poitrine: parseFloatOrNull('m_poitrine'),
+    tour_taille:   parseFloatOrNull('m_taille'),
+    tour_hanches:  parseFloatOrNull('m_hanches'),
+    tour_bras:     parseFloatOrNull('m_bras'),
+    tour_cuisse:   parseFloatOrNull('m_cuisse'),
+    notes:         document.getElementById('m_notes').value.trim() || null,
+  };
+
+  const { error } = await sb.from('mesures').insert(payload);
+  if (error) { showModalError('mesureError', error.message); return; }
+  closeModal('modalAddMesure');
+  clearForm(['m_poids','m_mg','m_poitrine','m_taille','m_hanches','m_bras','m_cuisse','m_notes']);
+  await loadMesures();
+};
+
+window.deleteMesure = async function(id) {
+  if (!confirm('Supprimer cette mesure ?')) return;
+  await sb.from('mesures').delete().eq('id', id);
+  await loadMesures();
+};
+
+// ────────────────────────────────────────────────────────────
+// SÉANCES
+// ────────────────────────────────────────────────────────────
+async function loadSeances() {
+  const { data, error } = await sb
+    .from('seances').select('*').eq('client_id', selectedClient.id).order('date', { ascending: false });
+
+  const body = document.getElementById('seancesBody');
+  if (error || !data?.length) {
+    body.innerHTML = '<tr><td colspan="8" class="card-empty">Aucune séance.</td></tr>';
+    return;
+  }
+  body.innerHTML = data.map(s => `
+    <tr>
+      <td>${formatDate(s.date)}</td>
+      <td style="font-weight:500">${esc(s.titre)}</td>
+      <td class="muted">${esc(s.programme || '—')}</td>
+      <td class="muted">${s.duree_min ? s.duree_min + ' min' : '—'}</td>
+      <td>${s.completee ? '<span class="badge badge-green">Oui</span>' : '<span class="badge badge-gray">Non</span>'}</td>
+      <td class="muted" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.notes_client || '—')}</td>
+      <td class="muted" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.notes_coach || '—')}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn-icon" title="Modifier" onclick="openEditSeance(${JSON.stringify(s).split('"').join('&quot;')})">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn-icon" title="Supprimer" onclick="deleteSeance('${s.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+window.openAddSeance = function() {
+  editingSeanceId = null;
+  document.getElementById('modalSeanceTitle').textContent = 'Nouvelle séance';
+  clearForm(['s_titre','s_programme','s_notes_coach']);
+  document.getElementById('s_completee').checked = false;
+  document.getElementById('s_duree').value = '';
+  document.getElementById('s_date').value = new Date().toISOString().split('T')[0];
+  openModal('modalAddSeance');
+};
+
+window.openEditSeance = function(s) {
+  editingSeanceId = s.id;
+  document.getElementById('modalSeanceTitle').textContent = 'Modifier la séance';
+  document.getElementById('s_date').value = s.date || '';
+  document.getElementById('s_titre').value = s.titre || '';
+  document.getElementById('s_programme').value = s.programme || '';
+  document.getElementById('s_duree').value = s.duree_min || '';
+  document.getElementById('s_completee').checked = !!s.completee;
+  document.getElementById('s_notes_coach').value = s.notes_coach || '';
+  openModal('modalAddSeance');
+};
+
+window.saveSeance = async function() {
+  const date = document.getElementById('s_date').value;
+  const titre = document.getElementById('s_titre').value.trim();
+  if (!date || !titre) { showModalError('seanceError', 'Date et titre requis.'); return; }
+
+  const payload = {
+    client_id:   selectedClient.id,
+    date,
+    titre,
+    programme:   document.getElementById('s_programme').value.trim() || null,
+    duree_min:   parseInt(document.getElementById('s_duree').value) || null,
+    completee:   document.getElementById('s_completee').checked,
+    notes_coach: document.getElementById('s_notes_coach').value.trim() || null,
+  };
+
+  let error;
+  if (editingSeanceId) {
+    ({ error } = await sb.from('seances').update(payload).eq('id', editingSeanceId));
+  } else {
+    ({ error } = await sb.from('seances').insert(payload));
+  }
+  if (error) { showModalError('seanceError', error.message); return; }
+  closeModal('modalAddSeance');
+  await loadSeances();
+};
+
+window.deleteSeance = async function(id) {
+  if (!confirm('Supprimer cette séance ?')) return;
+  await sb.from('seances').delete().eq('id', id);
+  await loadSeances();
+};
+
+// ────────────────────────────────────────────────────────────
+// NUTRITION
+// ────────────────────────────────────────────────────────────
+async function loadNutrition() {
+  const cid = selectedClient.id;
+  const [{ data: plan }, { data: logs }] = await Promise.all([
+    sb.from('plans_nutrition').select('*').eq('client_id', cid).order('updated_at', { ascending: false }).limit(1).maybeSingle(),
+    sb.from('logs_nutrition').select('*').eq('client_id', cid).order('date', { ascending: false }).limit(30),
+  ]);
+
+  currentPlanId = plan?.id || null;
+  const planBody = document.getElementById('nutritionPlanBody');
+
+  if (plan) {
+    planBody.innerHTML = `
+      <h4 style="font-size:15px;font-weight:600;margin-bottom:16px;color:var(--text)">${esc(plan.titre)}</h4>
+      <div class="macro-grid">
+        <div class="macro-card"><div class="macro-value">${plan.calories_cible ?? '—'}</div><div class="macro-unit">kcal</div><div class="macro-label">Calories</div></div>
+        <div class="macro-card"><div class="macro-value">${plan.proteines_g ?? '—'}</div><div class="macro-unit">g</div><div class="macro-label">Protéines</div></div>
+        <div class="macro-card"><div class="macro-value">${plan.glucides_g ?? '—'}</div><div class="macro-unit">g</div><div class="macro-label">Glucides</div></div>
+        <div class="macro-card"><div class="macro-value">${plan.lipides_g ?? '—'}</div><div class="macro-unit">g</div><div class="macro-label">Lipides</div></div>
+      </div>
+      ${plan.contenu ? `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--text)">${esc(plan.contenu)}</div>` : ''}
+    `;
+  } else {
+    planBody.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🥗</div>
+        <p class="empty-title">Aucun plan actif</p>
+        <button class="btn btn-primary btn-sm" onclick="openEditNutrition()">Créer un plan</button>
+      </div>
+    `;
+  }
+
+  const logsBody = document.getElementById('nutritionLogsBody');
+  if (!logs?.length) {
+    logsBody.innerHTML = '<tr><td colspan="3" class="card-empty">Aucun log.</td></tr>';
+  } else {
+    logsBody.innerHTML = logs.map(l => `
+      <tr>
+        <td>${formatDate(l.date)}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-weight:600;color:${l.respect_score >= 7 ? 'var(--green)' : l.respect_score >= 4 ? 'var(--yellow)' : 'var(--red)'}">${l.respect_score}/10</span>
+            <div class="score-bar-wrap" style="flex:1;min-width:60px"><div class="score-bar" style="width:${l.respect_score*10}%"></div></div>
+          </div>
+        </td>
+        <td class="muted">${esc(l.notes || '—')}</td>
+      </tr>
+    `).join('');
+  }
+}
+
+window.openEditNutrition = async function() {
+  const cid = selectedClient.id;
+  const { data: plan } = await sb.from('plans_nutrition').select('*').eq('client_id', cid)
+    .order('updated_at', { ascending: false }).limit(1).maybeSingle();
+
+  document.getElementById('n_titre').value     = plan?.titre || '';
+  document.getElementById('n_calories').value  = plan?.calories_cible || '';
+  document.getElementById('n_proteines').value = plan?.proteines_g || '';
+  document.getElementById('n_glucides').value  = plan?.glucides_g || '';
+  document.getElementById('n_lipides').value   = plan?.lipides_g || '';
+  document.getElementById('n_contenu').value   = plan?.contenu || '';
+  openModal('modalEditNutrition');
+};
+
+window.saveNutritionPlan = async function() {
+  const titre = document.getElementById('n_titre').value.trim();
+  if (!titre) { showModalError('nutritionError', 'Le titre est requis.'); return; }
+
+  const payload = {
+    client_id:       selectedClient.id,
+    titre,
+    contenu:         document.getElementById('n_contenu').value.trim() || null,
+    calories_cible:  parseInt(document.getElementById('n_calories').value) || null,
+    proteines_g:     parseInt(document.getElementById('n_proteines').value) || null,
+    glucides_g:      parseInt(document.getElementById('n_glucides').value) || null,
+    lipides_g:       parseInt(document.getElementById('n_lipides').value) || null,
+    updated_at:      new Date().toISOString(),
+  };
+
+  let error;
+  if (currentPlanId) {
+    ({ error } = await sb.from('plans_nutrition').update(payload).eq('id', currentPlanId));
+  } else {
+    ({ error } = await sb.from('plans_nutrition').insert(payload));
+  }
+  if (error) { showModalError('nutritionError', error.message); return; }
+  closeModal('modalEditNutrition');
+  await loadNutrition();
+};
+
+// ────────────────────────────────────────────────────────────
+// OBJECTIFS
+// ────────────────────────────────────────────────────────────
+async function loadObjectifs() {
+  const { data, error } = await sb
+    .from('objectifs').select('*').eq('client_id', selectedClient.id).order('created_at', { ascending: false });
+
+  const container = document.getElementById('objectifsList');
+  if (error || !data?.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">🎯</div><p class="empty-title">Aucun objectif</p></div>`;
+    return;
+  }
+  container.innerHTML = data.map(o => `
+    <div class="objectif-card">
+      <div class="objectif-dot ${o.statut}"></div>
+      <div class="objectif-body">
+        <div class="objectif-titre">${esc(o.titre)}</div>
+        ${o.description ? `<div class="objectif-desc">${esc(o.description)}</div>` : ''}
+        <div class="objectif-footer">
+          ${badgeStatut(o.statut)}
+          ${o.date_cible ? `<span style="font-size:11px;color:var(--text-muted)">Cible : ${formatDate(o.date_cible)}</span>` : ''}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn btn-secondary btn-sm" onclick="changeStatutObjectif('${o.id}', '${o.statut}')">Statut</button>
+        <button class="btn-icon" onclick="deleteObjectif('${o.id}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.saveObjectif = async function() {
+  const titre = document.getElementById('o_titre').value.trim();
+  if (!titre) { showModalError('objectifError', 'Le titre est requis.'); return; }
+
+  const payload = {
+    client_id:   selectedClient.id,
+    titre,
+    description: document.getElementById('o_desc').value.trim() || null,
+    date_cible:  document.getElementById('o_date_cible').value || null,
+    statut:      document.getElementById('o_statut').value,
+  };
+
+  const { error } = await sb.from('objectifs').insert(payload);
+  if (error) { showModalError('objectifError', error.message); return; }
+  closeModal('modalAddObjectif');
+  clearForm(['o_titre','o_desc','o_date_cible']);
+  await loadObjectifs();
+};
+
+window.changeStatutObjectif = async function(id, currentStatut) {
+  const next = { 'en_cours': 'atteint', 'atteint': 'abandonne', 'abandonne': 'en_cours' };
+  await sb.from('objectifs').update({ statut: next[currentStatut] }).eq('id', id);
+  await loadObjectifs();
+};
+
+window.deleteObjectif = async function(id) {
+  if (!confirm('Supprimer cet objectif ?')) return;
+  await sb.from('objectifs').delete().eq('id', id);
+  await loadObjectifs();
+};
+
+// ────────────────────────────────────────────────────────────
+// COMPTE-RENDUS
+// ────────────────────────────────────────────────────────────
+async function loadCR() {
+  const { data, error } = await sb
+    .from('compte_rendus').select('*').eq('client_id', selectedClient.id).order('created_at', { ascending: false });
+
+  const container = document.getElementById('crList');
+  if (error || !data?.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p class="empty-title">Aucun compte-rendu</p></div>`;
+    return;
+  }
+  container.innerHTML = data.map(cr => `
+    <div class="cr-card">
+      <div class="cr-header">
+        <span class="cr-date">${formatDateTime(cr.created_at)}</span>
+        <button class="btn-icon" onclick="deleteCR('${cr.id}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+      <div class="cr-content">${esc(cr.contenu)}</div>
+    </div>
+  `).join('');
+}
+
+window.openAddCRModal = async function() {
+  // Populate seances dropdown
+  const { data: seances } = await sb
+    .from('seances').select('id,titre,date').eq('client_id', selectedClient.id).order('date', { ascending: false });
+  const sel = document.getElementById('cr_seance_id');
+  sel.innerHTML = '<option value="">Aucune séance associée</option>'
+    + (seances || []).map(s => `<option value="${s.id}">${formatDate(s.date)} — ${esc(s.titre)}</option>`).join('');
+  openModal('modalAddCR');
+};
+
+window.saveCR = async function() {
+  const contenu = document.getElementById('cr_contenu').value.trim();
+  if (!contenu) { showModalError('crError', 'Le contenu est requis.'); return; }
+  const seanceId = document.getElementById('cr_seance_id').value || null;
+
+  const { error } = await sb.from('compte_rendus').insert({
+    client_id:  selectedClient.id,
+    contenu,
+    seance_id:  seanceId,
+    created_by: currentCoach.id,
+  });
+  if (error) { showModalError('crError', error.message); return; }
+  closeModal('modalAddCR');
+  document.getElementById('cr_contenu').value = '';
+  await loadCR();
+};
+
+window.deleteCR = async function(id) {
+  if (!confirm('Supprimer ce compte-rendu ?')) return;
+  await sb.from('compte_rendus').delete().eq('id', id);
+  await loadCR();
+};
+
+// ────────────────────────────────────────────────────────────
+// ADD CLIENT
+// ────────────────────────────────────────────────────────────
+window.addClient = async function() {
+  const prenom = document.getElementById('nc_prenom').value.trim();
+  const nom    = document.getElementById('nc_nom').value.trim();
+  const email  = document.getElementById('nc_email').value.trim();
+
+  if (!prenom || !nom) { showModalError('addClientError', 'Prénom et nom requis.'); return; }
+  if (!email)          { showModalError('addClientError', 'Email requis.'); return; }
+
+  // Invite via email (needs service role for admin.createUser — this uses inviteUserByEmail)
+  const { data: invData, error: invError } = await sb.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: true }
+  });
+
+  // Fallback: just insert profile manually (coach will handle auth separately)
+  // For production, use admin API from your backend. Here we insert profile directly.
+  const { data: existing } = await sb.from('profiles').select('id').eq('email', email).maybeSingle();
+
+  if (!existing) {
+    const profilePayload = {
+      id:        crypto.randomUUID(),
+      role:      'client',
+      prenom,
+      nom,
+      email,
+      coach_id:  currentCoach.id,
+      objectif:  document.getElementById('nc_objectif').value || null,
+      niveau:    document.getElementById('nc_niveau').value || null,
+      telephone: document.getElementById('nc_tel').value.trim() || null,
+    };
+    const { error: profileError } = await sb.from('profiles').insert(profilePayload);
+    if (profileError) { showModalError('addClientError', 'Erreur création profil : ' + profileError.message); return; }
+  } else {
+    // Link existing profile to this coach
+    await sb.from('profiles').update({ coach_id: currentCoach.id }).eq('id', existing.id);
+  }
+
+  closeModal('modalAddClient');
+  clearForm(['nc_prenom','nc_nom','nc_email','nc_tel']);
+  await loadClients();
+};
+
+// ────────────────────────────────────────────────────────────
+// EDIT CLIENT PROFILE
+// ────────────────────────────────────────────────────────────
+window.openEditClient = function() {
+  if (!selectedClient) return;
+  document.getElementById('ec_prenom').value   = selectedClient.prenom || '';
+  document.getElementById('ec_nom').value      = selectedClient.nom || '';
+  document.getElementById('ec_tel').value      = selectedClient.telephone || '';
+  document.getElementById('ec_objectif').value = selectedClient.objectif || '';
+  document.getElementById('ec_niveau').value   = selectedClient.niveau || 'Débutant';
+  openModal('modalEditClient');
+};
+
+window.saveEditClient = async function() {
+  const prenom = document.getElementById('ec_prenom').value.trim();
+  const nom    = document.getElementById('ec_nom').value.trim();
+  if (!prenom || !nom) { showModalError('editClientError', 'Prénom et nom requis.'); return; }
+
+  const { error } = await sb.from('profiles').update({
+    prenom,
+    nom,
+    telephone: document.getElementById('ec_tel').value.trim() || null,
+    objectif:  document.getElementById('ec_objectif').value || null,
+    niveau:    document.getElementById('ec_niveau').value || null,
+  }).eq('id', selectedClient.id);
+
+  if (error) { showModalError('editClientError', error.message); return; }
+
+  // Update local state
+  selectedClient = { ...selectedClient, prenom, nom };
+  await loadClients();
+  document.getElementById('clientFullName').textContent = `${prenom} ${nom}`;
+  closeModal('modalEditClient');
+};
+
+// ────────────────────────────────────────────────────────────
+// LOGOUT
+// ────────────────────────────────────────────────────────────
+window.handleLogout = async function() {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+};
+
+// ────────────────────────────────────────────────────────────
+// SIDEBAR TOGGLE (mobile)
+// ────────────────────────────────────────────────────────────
+window.toggleSidebar = function() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+};
+window.closeSidebar = function() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+};
+
+// ────────────────────────────────────────────────────────────
+// MODAL HELPERS
+// ────────────────────────────────────────────────────────────
+window.openModal = function(id) {
+  document.getElementById(id).classList.add('open');
+};
+window.closeModal = function(id) {
+  document.getElementById(id).classList.remove('open');
+  const errId = id.replace('modal','').toLowerCase() + 'Error';
+  const errEl = document.getElementById(errId);
+  if (errEl) errEl.style.display = 'none';
+};
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// Override modalAddCR open to load seances
+document.querySelector('[onclick="openModal(\'modalAddCR\')"]').setAttribute('onclick', 'openAddCRModal()');
+
+function showModalError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// ────────────────────────────────────────────────────────────
+// CHART FACTORY
+// ────────────────────────────────────────────────────────────
+function buildLineChart(labels, data, label) {
+  return {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label,
+        data,
+        borderColor: '#c8ff00',
+        backgroundColor: 'rgba(200,255,0,0.08)',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: '#c8ff00',
+        pointBorderColor: '#0a0a0a',
+        pointBorderWidth: 2,
+        tension: 0.4,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a1a1a',
+          borderColor: 'rgba(255,255,255,0.08)',
+          borderWidth: 1,
+          titleColor: '#888',
+          bodyColor: '#fff',
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#888', font: { family: 'Inter', size: 11 }, maxRotation: 45 }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#888', font: { family: 'Inter', size: 11 } }
+        }
+      }
+    }
+  };
+}
+
+// ────────────────────────────────────────────────────────────
+// UTILITIES
+// ────────────────────────────────────────────────────────────
+function initials(p, n) {
+  return ((p?.[0] || '') + (n?.[0] || '')).toUpperCase() || '?';
+}
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function formatDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+}
+function formatDateTime(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+function parseFloatOrNull(id) {
+  const v = parseFloat(document.getElementById(id).value);
+  return isNaN(v) ? null : v;
+}
+function clearForm(ids) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+function badgeStatut(s) {
+  const map = {
+    atteint:   ['badge-green', 'Atteint'],
+    en_cours:  ['badge-yellow', 'En cours'],
+    abandonne: ['badge-red', 'Abandonné'],
+  };
+  const [cls, label] = map[s] || ['badge-gray', s];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+// ────────────────────────────────────────────────────────────
+// BOOT
+// ────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>noLackinDiscipline</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <span class="logo">NLD</span>
+      <div class="nav-links">
+        <a href="#contact" class="nav-cta">Questions</a>
+        <button class="nav-cta nav-devis" onclick="openDevis()">Devis gratuit</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="blur-orb orb-1"></div>
+      <div class="blur-orb orb-2"></div>
+      <div class="blur-orb orb-3"></div>
+      <div class="grid-overlay"></div>
+    </div>
+    <div class="hero-content">
+      <p class="hero-label">noLackinDiscipline</p>
+      <h1 class="hero-title">
+        Ce qui te manque,<br />
+        c'est pas l'envie.<br />
+        <span class="accent">C'est la discipline.</span>
+      </h1>
+      <p class="hero-sub">Ne gâche pas ton potentiel. Réserve ta séance.</p>
+      <a href="#offre" class="btn-primary">Je commence maintenant</a>
+    </div>
+    <div class="scroll-hint">
+      <span></span>
+    </div>
+  </section>
+
+  <!-- MANIFESTE -->
+  <section class="manifeste">
+    <div class="container">
+      <div class="manifeste-grid">
+        <div class="manifeste-left">
+          <h2>L'envie,<br />tout le monde l'a.</h2>
+        </div>
+        <div class="manifeste-right">
+          <p>La motivation dure trois jours. La discipline, elle, construit des résultats sur des mois. Ce que tu cherches — le physique, l'énergie, la tête claire — ça ne vient pas en espérant. Ça vient en se présentant, séance après séance.</p>
+          <p>C'est exactement pour ça que NLD existe.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OFFRE -->
+  <section class="offre" id="offre">
+    <div class="container">
+      <p class="section-label">Ce que tu obtiens</p>
+      <h2 class="section-title">Un cadre. Un suivi. Des résultats.</h2>
+
+      <div class="offre-grid">
+
+        <div class="offre-card">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M6.5 6.5h11M6.5 17.5h11M4 12h16" stroke-linecap="round"/>
+              <rect x="2" y="9" width="4" height="6" rx="1"/>
+              <rect x="18" y="9" width="4" height="6" rx="1"/>
+            </svg>
+          </div>
+          <h3>2 séances / semaine</h3>
+          <p>Des entraînements construits pour toi, pas copiés-collés d'une salle. On travaille dur, on travaille juste.</p>
+        </div>
+
+        <div class="offre-card">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+              <path d="M8 12s1.5 3 4 3 4-3 4-3" stroke-linecap="round"/>
+              <path d="M9 9h.01M15 9h.01" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>Suivi alimentation</h3>
+          <p>Pas de régimes absurdes. Un plan adapté à ta vie, tes objectifs, ce que tu manges pour performer — pas pour souffrir.</p>
+        </div>
+
+        <div class="offre-card">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 3v1m0 16v1M4.22 4.22l.71.71m12.73 12.73.71.71M3 12h1m16 0h1M4.22 19.78l.71-.71M18.95 5.05l.71-.71" stroke-linecap="round"/>
+              <circle cx="12" cy="12" r="4"/>
+            </svg>
+          </div>
+          <h3>Accompagnement mental</h3>
+          <p>La tête, c'est 80% du game. Gestion du stress, de la discipline, des jours où t'as pas envie — on travaille ça aussi.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIX -->
+  <section class="prix">
+    <div class="container">
+      <div class="prix-card">
+        <div class="prix-blur-orb"></div>
+        <div class="prix-content">
+          <p class="section-label">Investissement</p>
+          <div class="prix-amount">
+            <span class="montant">120</span>
+            <span class="devise">€<span class="periode">/mois</span></span>
+          </div>
+          <ul class="prix-liste">
+            <li>
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              2 séances d'entraînement par semaine
+            </li>
+            <li>
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Plan alimentaire personnalisé
+            </li>
+            <li>
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Suivi mental & motivation
+            </li>
+            <li>
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Accès direct & réponses rapides
+            </li>
+            <li>
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Soit <strong style="color:var(--accent)">15€ la séance</strong>
+            </li>
+          </ul>
+          <div class="prix-btns">
+            <button class="btn-primary btn-large" onclick="openDevis()">Obtenir mon devis</button>
+            <a href="#contact" class="btn-devis-outline">Poser une question</a>
+          </div>
+          <p class="prix-note">Places limitées — je travaille avec peu de monde pour travailler bien.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact" id="contact">
+    <div class="container">
+      <p class="section-label">Une question ?</p>
+      <h2 class="section-title">Pose-la.<br />Je réponds vite.</h2>
+      <form class="contact-form" onsubmit="handleSubmit(event)">
+        <div class="form-row">
+          <input type="text" placeholder="Ton prénom" required />
+          <input type="email" placeholder="Ton email" required />
+        </div>
+        <textarea placeholder="Ton objectif en deux phrases..." rows="4" required></textarea>
+        <button type="submit" class="btn-primary btn-large">Envoyer</button>
+      </form>
+      <div class="form-success" id="formSuccess">
+        Message envoyé. Je reviens vers toi rapidement.
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <span class="logo">noLackinDiscipline</span>
+      <p>© 2026 — Fait pour ceux qui se présentent.</p>
+    </div>
+  </footer>
+
+  <!-- MODAL DEVIS -->
+  <div class="devis-overlay" id="devisOverlay" onclick="closeDevisFromOverlay(event)">
+    <div class="devis-modal">
+
+      <!-- Header modal -->
+      <div class="devis-modal-header">
+        <span class="logo">NLD</span>
+        <button class="devis-close" onclick="closeDevis()" aria-label="Fermer">✕</button>
+      </div>
+
+      <!-- Indicateur d'étapes -->
+      <div class="steps-bar">
+        <div class="step-item active" id="stepDot1"><span>1</span><p>Infos</p></div>
+        <div class="step-line" id="stepLine1"></div>
+        <div class="step-item" id="stepDot2"><span>2</span><p>Devis</p></div>
+        <div class="step-line" id="stepLine2"></div>
+        <div class="step-item" id="stepDot3"><span>3</span><p>Paiement</p></div>
+      </div>
+
+      <!-- ÉTAPE 1 : Informations -->
+      <div class="devis-step active" id="step1">
+        <h3 class="step-title">Tes informations</h3>
+        <p class="step-desc">Je prépare ton devis personnalisé en 30 secondes.</p>
+
+        <div class="devis-form">
+          <div class="form-row">
+            <div class="field-group">
+              <label>Prénom *</label>
+              <input type="text" id="dPrenom" placeholder="Ton prénom" />
+            </div>
+            <div class="field-group">
+              <label>Nom *</label>
+              <input type="text" id="dNom" placeholder="Ton nom" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label>Email *</label>
+              <input type="email" id="dEmail" placeholder="ton@email.com" />
+            </div>
+            <div class="field-group">
+              <label>Téléphone</label>
+              <input type="tel" id="dTel" placeholder="06 00 00 00 00" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Objectif principal *</label>
+            <select id="dObjectif">
+              <option value="">Choisir un objectif...</option>
+              <option value="Perte de poids">Perte de poids</option>
+              <option value="Prise de masse musculaire">Prise de masse musculaire</option>
+              <option value="Performance sportive">Performance sportive</option>
+              <option value="Remise en forme">Remise en forme générale</option>
+              <option value="Bien-être & santé">Bien-être & santé</option>
+              <option value="Préparation compétition">Préparation compétition</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label>Niveau actuel</label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="niveau" value="Débutant" checked />
+                <span>Débutant</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="niveau" value="Intermédiaire" />
+                <span>Intermédiaire</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="niveau" value="Avancé" />
+                <span>Avancé</span>
+              </label>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Forfait</label>
+            <div class="forfait-options">
+              <div class="forfait-option selected" id="forfaitMensuel">
+                <div class="forfait-info">
+                  <span class="forfait-name">Forfait mensuel</span>
+                  <span class="forfait-desc">2 séances/semaine · suivi nutrition · accompagnement mental · soit 15€ la séance</span>
+                </div>
+                <span class="forfait-price">120€<small>/mois</small></span>
+              </div>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Précisions / questions</label>
+            <textarea id="dMessage" placeholder="Dis-moi en quelques mots ce que tu cherches, ta situation actuelle..." rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="devis-error" id="step1Error"></div>
+        <div class="step-actions">
+          <button class="btn-primary btn-large" onclick="goToStep2()">Générer mon devis →</button>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 2 : Récapitulatif devis -->
+      <div class="devis-step" id="step2">
+        <div class="devis-doc" id="devisDoc">
+          <!-- Généré dynamiquement -->
+        </div>
+        <div class="step-actions step-actions-row">
+          <button class="btn-outline" onclick="goToStep1()">← Modifier</button>
+          <div class="print-btn-wrap">
+            <button class="btn-outline" onclick="printDevis()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Imprimer / PDF
+            </button>
+            <span class="print-hint">Dans la boîte d'impression, décoche <strong>En-têtes et pieds de page</strong> pour masquer l'URL.</span>
+          </div>
+          <button class="btn-primary btn-large" onclick="goToStep3()">Payer maintenant →</button>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 3 : Paiement -->
+      <div class="devis-step" id="step3">
+        <h3 class="step-title">Paiement sécurisé</h3>
+        <p class="step-desc" id="paymentDesc"></p>
+
+        <div class="payment-block">
+          <div class="payment-recap" id="paymentRecap"></div>
+
+          <div class="payment-methods">
+            <!-- Paiement carte -->
+            <a class="payment-btn-card" id="stripeBtn" href="#" target="_blank" onclick="return handleStripeClick()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              Payer par carte bancaire
+              <span class="badge-secure">🔒 Sécurisé</span>
+            </a>
+
+            <div class="payment-divider"><span>ou</span></div>
+
+            <!-- Virement -->
+            <div class="virement-box">
+              <p class="virement-title">Virement bancaire</p>
+              <div class="virement-details">
+                <div class="virement-row">
+                  <span class="vl">IBAN</span>
+                  <span class="vv" id="ibanDisplay">FR76 XXXX XXXX XXXX XXXX XXXX XXX</span>
+                </div>
+                <div class="virement-row">
+                  <span class="vl">BIC</span>
+                  <span class="vv">XXXXXXXX</span>
+                </div>
+                <div class="virement-row">
+                  <span class="vl">Référence</span>
+                  <span class="vv accent-text" id="refVirement"></span>
+                </div>
+              </div>
+              <p class="virement-note">Mentionne la référence dans le libellé. Je confirme dès réception.</p>
+              <button class="btn-outline" onclick="confirmVirement()">J'ai effectué le virement →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Confirmation paiement -->
+        <div class="payment-success" id="paymentSuccess">
+          <div class="success-icon">✓</div>
+          <h3>Paiement confirmé !</h3>
+          <p id="successMsg"></p>
+          <button class="btn-outline" onclick="closeDevis()">Fermer</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

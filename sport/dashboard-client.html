@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mon espace — noLackinDiscipline</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="dashboard.css" />
+  <style>
+    /* Client-specific: no sidebar */
+    .client-layout {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .client-topbar {
+      height: var(--navbar-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      flex-shrink: 0;
+    }
+    .client-page {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .client-tabs-wrap {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      flex-shrink: 0;
+    }
+    .client-content {
+      flex: 1;
+      padding: 28px 28px 40px;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    @media (max-width: 720px) {
+      .client-topbar { padding: 0 16px; }
+      .client-tabs-wrap { padding: 0 12px; }
+      .client-content { padding: 16px 12px 32px; }
+    }
+  </style>
+</head>
+<body>
+<div class="client-layout">
+
+  <!-- TOPBAR -->
+  <header class="client-topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="font-family:var(--font-display);font-size:26px;color:var(--accent);letter-spacing:0.04em">NLD</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="user-chip">
+        <span class="dot"></span>
+        <span id="clientChipName">Mon espace</span>
+      </div>
+      <button class="btn-logout" onclick="handleLogout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <!-- TABS + CONTENT -->
+  <div class="client-page">
+    <div class="client-tabs-wrap">
+      <div class="tabs-bar" style="border-bottom:none;margin-bottom:0">
+        <button class="tab-btn active" onclick="switchTab('apercu')">Aperçu</button>
+        <button class="tab-btn" onclick="switchTab('mesures')">Mesures</button>
+        <button class="tab-btn" onclick="switchTab('seances')">Séances</button>
+        <button class="tab-btn" onclick="switchTab('nutrition')">Nutrition</button>
+        <button class="tab-btn" onclick="switchTab('objectifs')">Objectifs</button>
+      </div>
+    </div>
+
+    <div class="client-content">
+
+      <!-- ── TAB : APERÇU ── -->
+      <div class="tab-panel active" id="tab-apercu">
+
+        <div class="welcome-card" id="welcomeCard">
+          <div class="welcome-greeting">Bonjour, <span id="welcomeName">—</span> 👋</div>
+          <div class="welcome-sub" id="welcomeSub">Bienvenue sur ton espace de suivi noLackinDiscipline.</div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <div class="stat-label">Séances complétées</div>
+            <div class="stat-value" id="s_statSeances">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Poids actuel</div>
+            <div class="stat-value" id="s_statPoids">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Prochaine séance</div>
+            <div class="stat-value" style="font-size:18px;line-height:1.2" id="s_statProchaine">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Objectifs en cours</div>
+            <div class="stat-value" id="s_statObjectifs">—</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Évolution du poids</span></div>
+            <div class="card-body"><div class="chart-wrap"><canvas id="weightChartClient"></canvas></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Objectifs actuels</span></div>
+            <div class="card-body" id="apercuObjectifs">
+              <p style="color:var(--text-muted);font-size:13px">Aucun objectif.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── TAB : MESURES ── -->
+      <div class="tab-panel" id="tab-mesures">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header">
+            <span class="card-title">Évolution du poids & masse grasse</span>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap-tall"><canvas id="mesuresChart"></canvas></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Historique des mesures</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th><th>Poids</th><th>MG %</th><th>Taille</th><th>Hanches</th><th>Poitrine</th><th>Bras</th><th>Cuisse</th><th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="mesuresTableBody">
+                <tr><td colspan="9" class="card-empty">Aucune mesure.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB : SÉANCES ── -->
+      <div class="tab-panel" id="tab-seances">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header"><span class="card-title">Prochaines séances</span></div>
+          <div id="upcomingSeances">
+            <div class="empty-state"><div class="empty-icon">📅</div><p class="empty-title">Aucune séance à venir</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Séances passées</span></div>
+          <div id="pastSeances">
+            <div class="empty-state"><div class="empty-icon">📋</div><p class="empty-title">Aucune séance passée</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB : NUTRITION ── -->
+      <div class="tab-panel" id="tab-nutrition">
+        <div class="grid-2" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Mon plan nutritionnel</span></div>
+            <div class="card-body" id="clientPlanBody">
+              <div class="empty-state">
+                <div class="empty-icon">🥗</div>
+                <p class="empty-title">Aucun plan actif</p>
+                <p class="empty-desc">Ton coach te préparera bientôt un plan personnalisé.</p>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Log du jour</span>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modalLogNutrition')">+ Ajouter</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Date</th><th>Score</th><th>Notes</th></tr></thead>
+                <tbody id="clientLogsBody">
+                  <tr><td colspan="3" class="card-empty">Aucun log.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB : OBJECTIFS ── -->
+      <div class="tab-panel" id="tab-objectifs">
+        <div id="clientObjectifsList">
+          <div class="empty-state">
+            <div class="empty-icon">🎯</div>
+            <p class="empty-title">Aucun objectif défini</p>
+            <p class="empty-desc">Ton coach définira tes objectifs avec toi.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /client-content -->
+  </div><!-- /client-page -->
+</div><!-- /client-layout -->
+
+<!-- ══════════════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════════════ -->
+
+<!-- MODAL : Compléter séance / note client -->
+<div class="modal-overlay" id="modalSeanceNote">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 class="modal-title">Compléter la séance</h3>
+      <button class="modal-close" onclick="closeModal('modalSeanceNote')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:16px" id="seanceNoteTitle"></p>
+      <div class="form-grid" style="display:grid;gap:12px">
+        <div class="field-group">
+          <label class="check-label" style="text-transform:none;font-size:13px;letter-spacing:0">
+            <input type="checkbox" id="sn_completee" />
+            Marquer comme complétée
+          </label>
+        </div>
+        <div class="field-group">
+          <label>Mes notes (ressenti, difficultés…)</label>
+          <textarea id="sn_notes" rows="4" placeholder="Comment s'est passée la séance ?"></textarea>
+        </div>
+      </div>
+      <div id="seanceNoteError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalSeanceNote')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveSeanceNote()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL : Log nutrition -->
+<div class="modal-overlay" id="modalLogNutrition">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 class="modal-title">Log nutrition</h3>
+      <button class="modal-close" onclick="closeModal('modalLogNutrition')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="display:grid;gap:14px">
+        <div class="field-group">
+          <label>Date *</label>
+          <input type="date" id="ln_date" />
+        </div>
+        <div class="field-group">
+          <label>Score de respect du plan (1-10) *</label>
+          <div class="score-input-wrap" id="scoreButtons">
+            <!-- Rendered by JS -->
+          </div>
+          <input type="hidden" id="ln_score" value="" />
+        </div>
+        <div class="field-group">
+          <label>Notes (facultatif)</label>
+          <textarea id="ln_notes" rows="3" placeholder="Écarts, raisons, remarques…"></textarea>
+        </div>
+      </div>
+      <div id="logNutritionError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalLogNutrition')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveLogNutrition()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script type="module">
+import { sb } from './supabase-config.js';
+
+// ────────────────────────────────────────────────────────────
+// STATE
+// ────────────────────────────────────────────────────────────
+let currentClient = null;
+let editingSeanceId = null;
+let weightChart = null;
+let mesuresChart = null;
+
+// ────────────────────────────────────────────────────────────
+// AUTH GUARD
+// ────────────────────────────────────────────────────────────
+async function requireClient() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return false; }
+
+  const { data: profile } = await sb
+    .from('profiles').select('*').eq('id', session.user.id).single();
+
+  if (!profile || profile.role !== 'client') {
+    window.location.href = 'login.html';
+    return false;
+  }
+  currentClient = profile;
+  const fullName = `${profile.prenom || ''} ${profile.nom || ''}`.trim() || 'Toi';
+  document.getElementById('clientChipName').textContent = fullName;
+  document.getElementById('welcomeName').textContent = profile.prenom || fullName;
+  document.getElementById('welcomeSub').textContent =
+    `Objectif : ${profile.objectif || '—'}  ·  Niveau : ${profile.niveau || '—'}`;
+  return true;
+}
+
+// ────────────────────────────────────────────────────────────
+// INIT
+// ────────────────────────────────────────────────────────────
+async function init() {
+  const ok = await requireClient();
+  if (!ok) return;
+
+  // Build score buttons
+  buildScoreButtons();
+  document.getElementById('ln_date').value = new Date().toISOString().split('T')[0];
+
+  await loadApercu();
+}
+
+// ────────────────────────────────────────────────────────────
+// TABS
+// ────────────────────────────────────────────────────────────
+window.switchTab = async function(tab) {
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    const tabs = ['apercu','mesures','seances','nutrition','objectifs'];
+    btn.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+
+  if (tab === 'apercu')    await loadApercu();
+  if (tab === 'mesures')   await loadMesures();
+  if (tab === 'seances')   await loadSeances();
+  if (tab === 'nutrition') await loadNutrition();
+  if (tab === 'objectifs') await loadObjectifs();
+};
+
+// ────────────────────────────────────────────────────────────
+// APERÇU
+// ────────────────────────────────────────────────────────────
+async function loadApercu() {
+  const cid = currentClient.id;
+  const today = new Date().toISOString().split('T')[0];
+
+  const [
+    { data: seances },
+    { data: mesures },
+    { data: objectifs },
+    { data: prochaine }
+  ] = await Promise.all([
+    sb.from('seances').select('completee,date').eq('client_id', cid),
+    sb.from('mesures').select('poids,date').eq('client_id', cid).order('date', { ascending: false }),
+    sb.from('objectifs').select('*').eq('client_id', cid),
+    sb.from('seances').select('date,titre').eq('client_id', cid)
+      .gte('date', today).order('date').limit(1).maybeSingle(),
+  ]);
+
+  document.getElementById('s_statSeances').textContent = seances?.filter(s => s.completee).length ?? '—';
+
+  const lastPoids = mesures?.[0]?.poids;
+  document.getElementById('s_statPoids').innerHTML = lastPoids
+    ? `${lastPoids}<span class="stat-unit">kg</span>` : '—';
+
+  if (prochaine) {
+    document.getElementById('s_statProchaine').innerHTML =
+      `<span style="font-size:14px">${formatDate(prochaine.date)}</span><br><span style="font-size:12px;color:var(--text-muted)">${esc(prochaine.titre)}</span>`;
+  } else {
+    document.getElementById('s_statProchaine').textContent = 'Aucune';
+  }
+
+  document.getElementById('s_statObjectifs').textContent =
+    objectifs?.filter(o => o.statut === 'en_cours').length ?? '—';
+
+  // Weight chart
+  const pts = (mesures || []).slice().reverse().filter(m => m.poids);
+  if (weightChart) weightChart.destroy();
+  const ctx = document.getElementById('weightChartClient').getContext('2d');
+  weightChart = new Chart(ctx, buildLineChart(
+    pts.map(m => formatDate(m.date)),
+    pts.map(m => m.poids),
+    'Poids (kg)'
+  ));
+
+  // Objectifs summary
+  const objEl = document.getElementById('apercuObjectifs');
+  const actifs = (objectifs || []).filter(o => o.statut !== 'abandonne').slice(0,4);
+  if (!actifs.length) {
+    objEl.innerHTML = '<p style="color:var(--text-muted);font-size:13px">Aucun objectif.</p>';
+  } else {
+    objEl.innerHTML = actifs.map(o => `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div class="objectif-dot ${o.statut}" style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:${dotColor(o.statut)}"></div>
+        <span style="font-size:13px;color:var(--text);flex:1">${esc(o.titre)}</span>
+        ${badgeStatut(o.statut)}
+      </div>
+    `).join('');
+  }
+}
+
+// ────────────────────────────────────────────────────────────
+// MESURES
+// ────────────────────────────────────────────────────────────
+async function loadMesures() {
+  const { data, error } = await sb
+    .from('mesures').select('*').eq('client_id', currentClient.id).order('date', { ascending: false });
+
+  const body = document.getElementById('mesuresTableBody');
+  if (error || !data?.length) {
+    body.innerHTML = '<tr><td colspan="9" class="card-empty">Aucune mesure.</td></tr>';
+  } else {
+    body.innerHTML = data.map(m => `
+      <tr>
+        <td>${formatDate(m.date)}</td>
+        <td style="font-weight:600">${m.poids ?? '—'} kg</td>
+        <td>${m.masse_grasse != null ? m.masse_grasse + ' %' : '—'}</td>
+        <td class="muted">${m.tour_taille ?? '—'}</td>
+        <td class="muted">${m.tour_hanches ?? '—'}</td>
+        <td class="muted">${m.tour_poitrine ?? '—'}</td>
+        <td class="muted">${m.tour_bras ?? '—'}</td>
+        <td class="muted">${m.tour_cuisse ?? '—'}</td>
+        <td class="muted" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.notes || '')}</td>
+      </tr>
+    `).join('');
+  }
+
+  // Chart
+  const pts = (data || []).slice().reverse().filter(m => m.poids || m.masse_grasse);
+  if (mesuresChart) mesuresChart.destroy();
+  const ctx = document.getElementById('mesuresChart').getContext('2d');
+  mesuresChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: pts.map(m => formatDate(m.date)),
+      datasets: [
+        {
+          label: 'Poids (kg)',
+          data: pts.map(m => m.poids),
+          borderColor: '#c8ff00',
+          backgroundColor: 'rgba(200,255,0,0.06)',
+          borderWidth: 2,
+          pointRadius: 4,
+          pointBackgroundColor: '#c8ff00',
+          pointBorderColor: '#0a0a0a',
+          pointBorderWidth: 2,
+          tension: 0.4,
+          yAxisID: 'y',
+          fill: true,
+        },
+        {
+          label: 'Masse grasse (%)',
+          data: pts.map(m => m.masse_grasse),
+          borderColor: '#888',
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          pointRadius: 3,
+          pointBackgroundColor: '#888',
+          borderDash: [4,3],
+          tension: 0.4,
+          yAxisID: 'y2',
+          fill: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          labels: { color: '#888', font: { family: 'Inter', size: 11 }, boxWidth: 12 }
+        },
+        tooltip: {
+          backgroundColor: '#1a1a1a',
+          borderColor: 'rgba(255,255,255,0.08)',
+          borderWidth: 1,
+          titleColor: '#888',
+          bodyColor: '#fff',
+        }
+      },
+      scales: {
+        x:  { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'Inter', size: 11 }, maxRotation: 45 } },
+        y:  { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'Inter', size: 11 } }, position: 'left' },
+        y2: { grid: { display: false }, ticks: { color: '#888', font: { family: 'Inter', size: 11 } }, position: 'right' }
+      }
+    }
+  });
+}
+
+// ────────────────────────────────────────────────────────────
+// SÉANCES
+// ────────────────────────────────────────────────────────────
+async function loadSeances() {
+  const cid = currentClient.id;
+  const today = new Date().toISOString().split('T')[0];
+
+  const { data, error } = await sb
+    .from('seances').select('*').eq('client_id', cid).order('date', { ascending: false });
+
+  if (error) return;
+
+  const upcoming = (data || []).filter(s => s.date >= today).reverse();
+  const past     = (data || []).filter(s => s.date < today);
+
+  renderSeances('upcomingSeances', upcoming, true);
+  renderSeances('pastSeances', past, false);
+}
+
+function renderSeances(containerId, seances, isUpcoming) {
+  const el = document.getElementById(containerId);
+  if (!seances.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">${isUpcoming ? '📅' : '📋'}</div>
+      <p class="empty-title">${isUpcoming ? 'Aucune séance à venir' : 'Aucune séance passée'}</p>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = seances.map(s => {
+    const d = new Date(s.date);
+    const day = d.toLocaleDateString('fr-FR', { day: '2-digit' });
+    const month = d.toLocaleDateString('fr-FR', { month: 'short' });
+    return `
+      <div class="seance-row">
+        <div class="seance-date">
+          <div class="seance-day">${day}</div>
+          <div class="seance-month">${month}</div>
+        </div>
+        <div class="seance-divider"></div>
+        <div class="seance-info">
+          <div class="seance-titre">${esc(s.titre)}</div>
+          <div class="seance-meta">
+            ${s.programme ? esc(s.programme) + ' · ' : ''}${s.duree_min ? s.duree_min + ' min' : ''}
+            ${s.completee ? ' · <span style="color:var(--green)">Complétée</span>' : ''}
+          </div>
+          ${s.notes_client ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;font-style:italic">"${esc(s.notes_client)}"</div>` : ''}
+        </div>
+        <div class="seance-actions">
+          ${badgeStatut2(s.completee)}
+          <button class="btn btn-secondary btn-sm" onclick="openSeanceNote('${s.id}', '${esc(s.titre)}', ${s.completee}, ${JSON.stringify(s.notes_client || '').split('"').join('&quot;')})">
+            ${s.completee && s.notes_client ? 'Modifier' : s.completee ? 'Ajouter note' : 'Compléter'}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function badgeStatut2(completee) {
+  return completee
+    ? '<span class="badge badge-green">Complétée</span>'
+    : '<span class="badge badge-gray">À faire</span>';
+}
+
+window.openSeanceNote = function(id, titre, completee, notes) {
+  editingSeanceId = id;
+  document.getElementById('seanceNoteTitle').textContent = titre;
+  document.getElementById('sn_completee').checked = !!completee;
+  document.getElementById('sn_notes').value = notes || '';
+  openModal('modalSeanceNote');
+};
+
+window.saveSeanceNote = async function() {
+  const { error } = await sb.from('seances').update({
+    completee:    document.getElementById('sn_completee').checked,
+    notes_client: document.getElementById('sn_notes').value.trim() || null,
+  }).eq('id', editingSeanceId);
+
+  if (error) { showModalError('seanceNoteError', error.message); return; }
+  closeModal('modalSeanceNote');
+  await loadSeances();
+};
+
+// ────────────────────────────────────────────────────────────
+// NUTRITION
+// ────────────────────────────────────────────────────────────
+async function loadNutrition() {
+  const cid = currentClient.id;
+  const [{ data: plan }, { data: logs }] = await Promise.all([
+    sb.from('plans_nutrition').select('*').eq('client_id', cid).order('updated_at', { ascending: false }).limit(1).maybeSingle(),
+    sb.from('logs_nutrition').select('*').eq('client_id', cid).order('date', { ascending: false }).limit(30),
+  ]);
+
+  const planBody = document.getElementById('clientPlanBody');
+  if (plan) {
+    planBody.innerHTML = `
+      <h4 style="font-size:15px;font-weight:600;margin-bottom:16px;color:var(--text)">${esc(plan.titre)}</h4>
+      <div class="macro-grid">
+        <div class="macro-card"><div class="macro-value">${plan.calories_cible ?? '—'}</div><div class="macro-unit">kcal</div><div class="macro-label">Calories</div></div>
+        <div class="macro-card"><div class="macro-value">${plan.proteines_g ?? '—'}</div><div class="macro-unit">g</div><div class="macro-label">Protéines</div></div>
+        <div class="macro-card"><div class="macro-value">${plan.glucides_g ?? '—'}</div><div class="macro-unit">g</div><div class="macro-label">Glucides</div></div>
+        <div class="macro-card"><div class="macro-value">${plan.lipides_g ?? '—'}</div><div class="macro-unit">g</div><div class="macro-label">Lipides</div></div>
+      </div>
+      ${plan.contenu ? `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--text)">${esc(plan.contenu)}</div>` : ''}
+    `;
+  } else {
+    planBody.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🥗</div>
+      <p class="empty-title">Aucun plan actif</p>
+      <p class="empty-desc">Ton coach te préparera bientôt un plan personnalisé.</p>
+    </div>`;
+  }
+
+  const logsBody = document.getElementById('clientLogsBody');
+  if (!logs?.length) {
+    logsBody.innerHTML = '<tr><td colspan="3" class="card-empty">Aucun log.</td></tr>';
+  } else {
+    logsBody.innerHTML = logs.map(l => `
+      <tr>
+        <td>${formatDate(l.date)}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-weight:600;color:${l.respect_score >= 7 ? 'var(--green)' : l.respect_score >= 4 ? 'var(--yellow)' : 'var(--red)'}">${l.respect_score}/10</span>
+            <div class="score-bar-wrap" style="flex:1;min-width:60px"><div class="score-bar" style="width:${l.respect_score*10}%"></div></div>
+          </div>
+        </td>
+        <td class="muted">${esc(l.notes || '—')}</td>
+      </tr>
+    `).join('');
+  }
+}
+
+window.saveLogNutrition = async function() {
+  const date  = document.getElementById('ln_date').value;
+  const score = parseInt(document.getElementById('ln_score').value);
+
+  if (!date)          { showModalError('logNutritionError', 'La date est requise.'); return; }
+  if (isNaN(score))   { showModalError('logNutritionError', 'Choisis un score.'); return; }
+
+  const { error } = await sb.from('logs_nutrition').insert({
+    client_id:     currentClient.id,
+    date,
+    respect_score: score,
+    notes:         document.getElementById('ln_notes').value.trim() || null,
+  });
+  if (error) { showModalError('logNutritionError', error.message); return; }
+  closeModal('modalLogNutrition');
+  document.getElementById('ln_notes').value = '';
+  document.getElementById('ln_score').value = '';
+  document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+  await loadNutrition();
+};
+
+// ────────────────────────────────────────────────────────────
+// OBJECTIFS
+// ────────────────────────────────────────────────────────────
+async function loadObjectifs() {
+  const { data, error } = await sb
+    .from('objectifs').select('*').eq('client_id', currentClient.id).order('created_at', { ascending: false });
+
+  const container = document.getElementById('clientObjectifsList');
+  if (error || !data?.length) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🎯</div>
+      <p class="empty-title">Aucun objectif défini</p>
+      <p class="empty-desc">Ton coach définira tes objectifs avec toi.</p>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = data.map(o => `
+    <div class="objectif-card">
+      <div class="objectif-dot ${o.statut}" style="background:${dotColor(o.statut)}"></div>
+      <div class="objectif-body">
+        <div class="objectif-titre">${esc(o.titre)}</div>
+        ${o.description ? `<div class="objectif-desc">${esc(o.description)}</div>` : ''}
+        <div class="objectif-footer">
+          ${badgeStatut(o.statut)}
+          ${o.date_cible ? `<span style="font-size:11px;color:var(--text-muted)">Cible : ${formatDate(o.date_cible)}</span>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ────────────────────────────────────────────────────────────
+// SCORE BUTTONS (nutrition log)
+// ────────────────────────────────────────────────────────────
+function buildScoreButtons() {
+  const wrap = document.getElementById('scoreButtons');
+  wrap.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'score-btn';
+    btn.textContent = i;
+    btn.onclick = () => {
+      document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('ln_score').value = i;
+    };
+    wrap.appendChild(btn);
+  }
+}
+
+// ────────────────────────────────────────────────────────────
+// LOGOUT
+// ────────────────────────────────────────────────────────────
+window.handleLogout = async function() {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+};
+
+// ────────────────────────────────────────────────────────────
+// MODAL HELPERS
+// ────────────────────────────────────────────────────────────
+window.openModal = function(id) {
+  document.getElementById(id).classList.add('open');
+};
+window.closeModal = function(id) {
+  document.getElementById(id).classList.remove('open');
+  const errId = id.replace('modal','').toLowerCase() + 'Error';
+  const errEl = document.getElementById(errId);
+  if (errEl) errEl.style.display = 'none';
+};
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+function showModalError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// ────────────────────────────────────────────────────────────
+// CHART FACTORY
+// ────────────────────────────────────────────────────────────
+function buildLineChart(labels, data, label) {
+  return {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label,
+        data,
+        borderColor: '#c8ff00',
+        backgroundColor: 'rgba(200,255,0,0.08)',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: '#c8ff00',
+        pointBorderColor: '#0a0a0a',
+        pointBorderWidth: 2,
+        tension: 0.4,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a1a1a',
+          borderColor: 'rgba(255,255,255,0.08)',
+          borderWidth: 1,
+          titleColor: '#888',
+          bodyColor: '#fff',
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'Inter', size: 11 }, maxRotation: 45 } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { family: 'Inter', size: 11 } } }
+      }
+    }
+  };
+}
+
+// ────────────────────────────────────────────────────────────
+// UTILITIES
+// ────────────────────────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function formatDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+}
+function badgeStatut(s) {
+  const map = {
+    atteint:   ['badge-green','Atteint'],
+    en_cours:  ['badge-yellow','En cours'],
+    abandonne: ['badge-red','Abandonné'],
+  };
+  const [cls, label] = map[s] || ['badge-gray', s];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+function dotColor(s) {
+  return s === 'atteint' ? 'var(--green)' : s === 'en_cours' ? 'var(--yellow)' : 'var(--red)';
+}
+
+// ────────────────────────────────────────────────────────────
+// BOOT
+// ────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
