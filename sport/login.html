@@ -374,7 +374,7 @@
       if (role === 'client') {
         const { data: pending } = await sb.from('pending_clients').select('email').eq('email', email).maybeSingle();
         if (!pending) {
-          showErr(errBox, 'Aucun abonnement trouvé pour cet email. Souscris un abonnement pour accéder à l\'espace client.');
+          showErr(errBox, 'Aucun paiement enregistré pour cet email. La création de compte est réservée aux clients ayant souscrit un abonnement. Obtiens ton devis et règle ton premier mois pour accéder à ton espace.');
           return;
         }
       }
