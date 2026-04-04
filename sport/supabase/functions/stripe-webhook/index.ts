@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
               from: 'NLD <onboarding@resend.dev>',
-              to: 'nolackindiscipline@gmail.com',
+              to: 'stanpayikelike@gmail.com',
               subject: `Nouveau client payant — ${devisData.prospect_prenom} ${devisData.prospect_nom}`,
               html: `
                 <h2>Nouveau paiement reçu</h2>
