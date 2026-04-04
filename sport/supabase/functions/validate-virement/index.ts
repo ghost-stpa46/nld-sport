@@ -45,8 +45,8 @@ Deno.serve(async (req) => {
 
     // Marquer le devis comme payé
     await sb.from('devis').update({
-      statut: 'payé',
-      'payé_le': new Date().toISOString(),
+      statut: 'paye',
+      paye_le: new Date().toISOString(),
     }).eq('id', devis_id);
 
     // Ajouter dans pending_clients

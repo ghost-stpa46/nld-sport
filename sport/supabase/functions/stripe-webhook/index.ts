@@ -46,8 +46,8 @@ Deno.serve(async (req) => {
         .single();
 
       await sb.from('devis').update({
-        statut: 'payé',
-        'payé_le': new Date().toISOString(),
+        statut: 'paye',
+        paye_le: new Date().toISOString(),
       }).eq('id', session.metadata.devis_id);
 
       if (devisData) {
