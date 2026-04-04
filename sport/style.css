@@ -2049,3 +2049,84 @@ footer p {
   padding-left: 16px;
   margin-top: 24px;
 }
+
+/* ── TÉMOIGNAGES ── */
+.temoignages {
+  padding: 100px 0;
+}
+
+.temo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.temo-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: border-color 0.2s;
+}
+
+.temo-card:hover {
+  border-color: rgba(200,255,0,0.2);
+}
+
+.temo-stars {
+  color: var(--accent);
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+
+.temo-text {
+  font-size: 14px;
+  color: #ccc;
+  line-height: 1.8;
+  font-style: italic;
+  flex: 1;
+}
+
+.temo-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.temo-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(200,255,0,0.2), rgba(200,255,0,0.05));
+  border: 1px solid rgba(200,255,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.temo-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.temo-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+@media (max-width: 900px) {
+  .temo-grid {
+    grid-template-columns: 1fr;
+  }
+}
