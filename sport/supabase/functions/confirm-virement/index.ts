@@ -80,11 +80,11 @@ Deno.serve(async (req) => {
       );
 
       await sendEmail(brevoKey, email,
-        `Virement reçu — Crée ton compte noLackinDiscipline`,
+        `Déclaration de virement reçue — noLackinDiscipline`,
         `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#0a0a0a;color:#ffffff;padding:40px 32px;border-radius:12px;">
           <h1 style="font-size:32px;color:#c8ff00;margin:0 0 8px">NLD</h1>
           <p style="color:#888;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 32px">noLackinDiscipline</p>
-          <h2 style="font-size:22px;margin:0 0 16px">Virement déclaré, ${prenom} !</h2>
+          <h2 style="font-size:22px;margin:0 0 16px">Déclaration reçue, ${prenom} !</h2>
           <p style="color:#ccc;line-height:1.6;margin:0 0 12px">
             On a bien reçu ta déclaration de virement pour le <strong style="color:#fff">Forfait mensuel NLD</strong>.
           </p>
@@ -92,11 +92,8 @@ Deno.serve(async (req) => {
             <strong style="color:#fff">Référence :</strong> ${reference}
           </p>
           <p style="color:#ccc;line-height:1.6;margin:0 0 32px">
-            Tu peux dès maintenant créer ton compte et accéder à ton espace client.
+            Dès que le coach aura confirmé la réception du virement, tu recevras un email avec un lien pour créer ton compte.
           </p>
-          <a href="${registerUrl}" style="display:inline-block;background:#c8ff00;color:#000;font-weight:700;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:15px;">
-            Créer mon compte →
-          </a>
           <hr style="border:none;border-top:1px solid #222;margin:40px 0 24px"/>
           <p style="color:#555;font-size:12px;margin:0">
             Ce qui te manque, c'est pas l'envie. C'est la discipline.<br/>
