@@ -1850,7 +1850,6 @@ window.confirmerVirement = async function(devis_id, clientName) {
   const json = await res.json();
   if (json.error) { alert('Erreur : ' + json.error); return; }
 
-  alert(`Virement confirmé ! Un email a été envoyé à ${clientName} pour créer son compte.`);
   await loadOverview();
 };
 
