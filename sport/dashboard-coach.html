@@ -44,6 +44,19 @@
         <span class="topbar-client-name" id="topbarClientName" style="display:none"></span>
       </div>
       <div class="topbar-right">
+        <div class="notif-wrap" id="notifWrap">
+          <button class="notif-btn" onclick="toggleNotifs()" id="notifBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <span>Notifications</span>
+              <button onclick="markAllRead()" style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer">Tout marquer lu</button>
+            </div>
+            <div id="notifList"><p style="padding:16px;font-size:13px;color:var(--text-muted)">Aucune notification.</p></div>
+          </div>
+        </div>
         <div class="user-chip">
           <span class="dot"></span>
           <span id="coachName">Coach</span>
@@ -56,10 +69,53 @@
     <div class="page-area" id="pageArea">
 
       <!-- Aucun client sélectionné -->
-      <div class="select-client-state" id="selectClientState">
-        <div class="big-logo">NLD</div>
-        <p style="font-size:16px;font-weight:600;color:var(--text)">Sélectionne un client</p>
-        <p style="font-size:13px;color:var(--text-muted)">Choisis un client dans la liste pour accéder à son suivi complet.</p>
+      <!-- VUE GLOBALE -->
+      <div id="selectClientState">
+        <div class="page-header">
+          <h1 class="page-title" id="overviewGreeting">Bonjour</h1>
+          <p class="page-sub">Vue d'ensemble de tes clients</p>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:24px">
+          <div class="stat-card">
+            <div class="stat-label">Clients actifs</div>
+            <div class="stat-value" id="ov_clients">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Séances cette semaine</div>
+            <div class="stat-value" id="ov_seances">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Devis en attente</div>
+            <div class="stat-value" id="ov_devis">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Messages non lus</div>
+            <div class="stat-value" id="ov_messages">—</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Séances à venir (7 jours)</span></div>
+            <div id="ov_upcoming_seances">
+              <div class="empty-state"><div class="empty-icon">📅</div><p class="empty-title">Aucune séance</p></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Devis en attente de paiement</span></div>
+            <div id="ov_pending_devis">
+              <div class="empty-state"><div class="empty-icon">💶</div><p class="empty-title">Aucun devis en attente</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:24px">
+          <div class="card-header"><span class="card-title">Tous les clients</span></div>
+          <div id="ov_clients_list">
+            <div class="empty-state"><div class="empty-icon">👤</div><p class="empty-title">Aucun client</p></div>
+          </div>
+        </div>
       </div>
 
       <!-- Détail client -->
@@ -83,6 +139,9 @@
           <button class="tab-btn" onclick="switchTab('nutrition')">Nutrition</button>
           <button class="tab-btn" onclick="switchTab('objectifs')">Objectifs</button>
           <button class="tab-btn" onclick="switchTab('compterendus')">Compte-rendus</button>
+          <button class="tab-btn" onclick="switchTab('photos')">Photos</button>
+          <button class="tab-btn" onclick="switchTab('messages')">Messages</button>
+          <button class="tab-btn" onclick="switchTab('devis')">Devis & Factures</button>
         </div>
 
         <!-- ── TAB : APERÇU ── -->
@@ -103,6 +162,17 @@
             <div class="stat-card">
               <div class="stat-label">Score nutrition moy.</div>
               <div class="stat-value" id="statNutrition">—<span class="stat-unit">/10</span></div>
+            </div>
+          </div>
+
+          <!-- Abonnement -->
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-header">
+              <span class="card-title">Abonnement</span>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modalAddSubscription')">+ Créer abonnement</button>
+            </div>
+            <div class="card-body" id="subscriptionStatus">
+              <p style="color:var(--text-muted);font-size:13px">Aucun abonnement actif.</p>
             </div>
           </div>
 
@@ -244,6 +314,51 @@
           </div>
         </div>
 
+        <!-- ── TAB : PHOTOS ── -->
+        <div class="tab-panel" id="tab-photos">
+          <div id="coachPhotosGallery" class="photos-grid">
+            <div class="empty-state"><div class="empty-icon">📷</div><p class="empty-title">Aucune photo</p></div>
+          </div>
+        </div>
+
+        <!-- ── TAB : DEVIS & FACTURES ── -->
+        <div class="tab-panel" id="tab-devis">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+            <button class="btn btn-primary btn-sm" onclick="openModal('modalAddDevis')">+ Nouveau devis</button>
+          </div>
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Titre</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="devisBody">
+                  <tr><td colspan="5" class="card-empty">Aucun devis.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TAB : MESSAGES ── -->
+        <div class="tab-panel" id="tab-messages">
+          <div class="chat-wrap">
+            <div class="chat-messages" id="chatMessages">
+              <div class="empty-state"><div class="empty-icon">💬</div><p class="empty-title">Aucun message</p></div>
+            </div>
+            <div class="chat-input-row">
+              <input type="text" class="chat-input" id="chatInput" placeholder="Écrire un message…" onkeydown="if(event.key==='Enter')sendMessage()" />
+              <button class="btn btn-primary" onclick="sendMessage()">Envoyer</button>
+            </div>
+          </div>
+        </div>
+
       </div><!-- /clientDetail -->
     </div><!-- /page-area -->
   </div><!-- /main-content -->
@@ -252,6 +367,60 @@
 <!-- ══════════════════════════════════════════════════════════
      MODALS
 ══════════════════════════════════════════════════════════ -->
+
+<!-- MODAL : Créer abonnement -->
+<div class="modal-overlay" id="modalAddSubscription">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 class="modal-title">Créer un abonnement</h3>
+      <button class="modal-close" onclick="closeModal('modalAddSubscription')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="display:grid;gap:14px">
+        <div class="field-group">
+          <label>Montant mensuel (€) *</label>
+          <input type="number" id="sub_montant" placeholder="120" min="1" step="0.01" />
+        </div>
+      </div>
+      <div id="subscriptionError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAddSubscription')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveSubscription()">Créer & envoyer le lien</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL : Ajouter devis -->
+<div class="modal-overlay" id="modalAddDevis">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 class="modal-title">Nouveau devis</h3>
+      <button class="modal-close" onclick="closeModal('modalAddDevis')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="display:grid;gap:14px">
+        <div class="field-group">
+          <label>Titre *</label>
+          <input type="text" id="dv_titre" placeholder="Ex : Coaching mensuel avril" />
+        </div>
+        <div class="field-group">
+          <label>Description</label>
+          <textarea id="dv_description" rows="3" placeholder="Détail des prestations…"></textarea>
+        </div>
+        <div class="field-group">
+          <label>Montant (€) *</label>
+          <input type="number" id="dv_montant" placeholder="150" min="1" step="0.01" />
+        </div>
+      </div>
+      <div id="devisError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAddDevis')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveDevis()">Créer le devis</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL : Ajouter client -->
 <div class="modal-overlay" id="modalAddClient">
@@ -635,7 +804,112 @@ async function init() {
   if (!ok) return;
   await loadClients();
   setDefaultDates();
+  await loadNotifications();
+  subscribeNotifications();
+  await loadOverview();
 }
+
+// ────────────────────────────────────────────────────────────
+// VUE GLOBALE
+// ────────────────────────────────────────────────────────────
+async function loadOverview() {
+  const coachId = currentCoach.id;
+  const today   = new Date().toISOString().split('T')[0];
+  const in7days = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
+  const weekStart = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+
+  // Salutation
+  const h = new Date().getHours();
+  const greet = h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
+  document.getElementById('overviewGreeting').textContent = `${greet}, ${currentCoach.prenom || 'Coach'}`;
+
+  const [
+    { data: clients },
+    { data: seancesSemaine },
+    { data: devisEnAttente },
+    { data: messagesNonLus },
+    { data: seancesAVenir },
+  ] = await Promise.all([
+    sb.from('profiles').select('id,prenom,nom,objectif,niveau').eq('coach_id', coachId).eq('role', 'client'),
+    sb.from('seances').select('id').eq('coach_id', coachId).gte('date', weekStart).lte('date', today),
+    sb.from('devis').select('id,titre,montant,client_id,prospect_prenom,prospect_nom').eq('coach_id', coachId).eq('statut', 'envoyé'),
+    sb.from('messages').select('id').eq('receiver_id', coachId).is('read_at', null),
+    sb.from('seances').select('*').eq('coach_id', coachId).gte('date', today).lte('date', in7days).order('date'),
+  ]);
+
+  document.getElementById('ov_clients').textContent  = clients?.length ?? 0;
+  document.getElementById('ov_seances').textContent  = seancesSemaine?.length ?? 0;
+  document.getElementById('ov_devis').textContent    = devisEnAttente?.length ?? 0;
+  document.getElementById('ov_messages').textContent = messagesNonLus?.length ?? 0;
+
+  // Séances à venir
+  const seancesEl = document.getElementById('ov_upcoming_seances');
+  if (seancesAVenir?.length) {
+    // Récupérer les noms des clients
+    const clientMap = {};
+    (clients || []).forEach(c => { clientMap[c.id] = `${c.prenom} ${c.nom}`; });
+    seancesEl.innerHTML = seancesAVenir.map(s => `
+      <div class="seance-row" style="cursor:pointer" onclick="selectClientById('${s.client_id}')">
+        <div class="seance-date">
+          <div class="seance-day">${new Date(s.date).toLocaleDateString('fr-FR',{day:'2-digit'})}</div>
+          <div class="seance-month">${new Date(s.date).toLocaleDateString('fr-FR',{month:'short'})}</div>
+        </div>
+        <div class="seance-divider"></div>
+        <div class="seance-info">
+          <div class="seance-titre">${esc(s.titre)}</div>
+          <div class="seance-meta">${clientMap[s.client_id] || '—'}</div>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    seancesEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><p class="empty-title">Aucune séance cette semaine</p></div>';
+  }
+
+  // Devis en attente
+  const devisEl = document.getElementById('ov_pending_devis');
+  if (devisEnAttente?.length) {
+    const clientMap = {};
+    (clients || []).forEach(c => { clientMap[c.id] = `${c.prenom} ${c.nom}`; });
+    devisEl.innerHTML = devisEnAttente.map(d => {
+      const name = d.client_id ? (clientMap[d.client_id] || '—') : `${d.prospect_prenom || ''} ${d.prospect_nom || ''}`.trim();
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:13px;font-weight:600">${esc(d.titre)}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${name}</div>
+        </div>
+        <span style="font-weight:700;color:var(--accent)">${d.montant}€</span>
+      </div>`;
+    }).join('');
+  } else {
+    devisEl.innerHTML = '<div class="empty-state"><div class="empty-icon">💶</div><p class="empty-title">Aucun devis en attente</p></div>';
+  }
+
+  // Liste clients
+  const clientsEl = document.getElementById('ov_clients_list');
+  if (clients?.length) {
+    clientsEl.innerHTML = clients.map(c => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="selectClientById('${c.id}')">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);font-size:14px">
+            ${(c.prenom?.[0] || '?').toUpperCase()}
+          </div>
+          <div>
+            <div style="font-size:14px;font-weight:600">${esc(c.prenom)} ${esc(c.nom)}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${esc(c.objectif || '—')} · ${esc(c.niveau || '—')}</div>
+          </div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    `).join('');
+  } else {
+    clientsEl.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p class="empty-title">Aucun client</p></div>';
+  }
+}
+
+window.selectClientById = function(id) {
+  const item = document.querySelector(`.client-item[data-id="${id}"]`);
+  if (item) item.click();
+};
 
 function setDefaultDates() {
   const today = new Date().toISOString().split('T')[0];
@@ -720,12 +994,15 @@ window.switchTab = async function(tab) {
   document.getElementById('tab-' + tab).classList.add('active');
 
   if (!selectedClient) return;
-  if (tab === 'apercu')       await loadApercu();
+  if (tab === 'apercu')       { await loadApercu(); await loadSubscription(); }
   if (tab === 'mesures')      await loadMesures();
   if (tab === 'seances')      await loadSeances();
   if (tab === 'nutrition')    await loadNutrition();
   if (tab === 'objectifs')    await loadObjectifs();
   if (tab === 'compterendus') await loadCR();
+  if (tab === 'photos')       await loadCoachPhotos();
+  if (tab === 'messages')     await loadMessages();
+  if (tab === 'devis')        await loadDevis();
 };
 
 // ────────────────────────────────────────────────────────────
@@ -900,6 +1177,7 @@ window.saveSeance = async function() {
 
   const payload = {
     client_id:   selectedClient.id,
+    coach_id:    currentCoach.id,
     date,
     titre,
     programme:   document.getElementById('s_programme').value.trim() || null,
@@ -1151,34 +1429,34 @@ window.addClient = async function() {
   if (!prenom || !nom) { showModalError('addClientError', 'Prénom et nom requis.'); return; }
   if (!email)          { showModalError('addClientError', 'Email requis.'); return; }
 
-  // Invite via email (needs service role for admin.createUser — this uses inviteUserByEmail)
-  const { data: invData, error: invError } = await sb.auth.signInWithOtp({
+  // Si le client existe déjà dans profiles, on le lie juste au coach
+  const { data: existing } = await sb.from('profiles').select('id').eq('email', email).maybeSingle();
+  if (existing) {
+    await sb.from('profiles').update({ coach_id: currentCoach.id }).eq('id', existing.id);
+    closeModal('modalAddClient');
+    clearForm(['nc_prenom','nc_nom','nc_email','nc_tel']);
+    await loadClients();
+    return;
+  }
+
+  // Sinon, on enregistre l'invitation en attente
+  const { error: pendingError } = await sb.from('pending_clients').upsert({
+    email,
+    prenom,
+    nom,
+    coach_id:  currentCoach.id,
+    objectif:  document.getElementById('nc_objectif').value || null,
+    niveau:    document.getElementById('nc_niveau').value || null,
+    telephone: document.getElementById('nc_tel').value.trim() || null,
+  }, { onConflict: 'email' });
+  if (pendingError) { showModalError('addClientError', 'Erreur : ' + pendingError.message); return; }
+
+  // Envoi du lien magique d'invitation
+  const { error: otpError } = await sb.auth.signInWithOtp({
     email,
     options: { shouldCreateUser: true }
   });
-
-  // Fallback: just insert profile manually (coach will handle auth separately)
-  // For production, use admin API from your backend. Here we insert profile directly.
-  const { data: existing } = await sb.from('profiles').select('id').eq('email', email).maybeSingle();
-
-  if (!existing) {
-    const profilePayload = {
-      id:        crypto.randomUUID(),
-      role:      'client',
-      prenom,
-      nom,
-      email,
-      coach_id:  currentCoach.id,
-      objectif:  document.getElementById('nc_objectif').value || null,
-      niveau:    document.getElementById('nc_niveau').value || null,
-      telephone: document.getElementById('nc_tel').value.trim() || null,
-    };
-    const { error: profileError } = await sb.from('profiles').insert(profilePayload);
-    if (profileError) { showModalError('addClientError', 'Erreur création profil : ' + profileError.message); return; }
-  } else {
-    // Link existing profile to this coach
-    await sb.from('profiles').update({ coach_id: currentCoach.id }).eq('id', existing.id);
-  }
+  if (otpError) { showModalError('addClientError', 'Erreur envoi email : ' + otpError.message); return; }
 
   closeModal('modalAddClient');
   clearForm(['nc_prenom','nc_nom','nc_email','nc_tel']);
@@ -1358,6 +1636,312 @@ function badgeStatut(s) {
   const [cls, label] = map[s] || ['badge-gray', s];
   return `<span class="badge ${cls}">${label}</span>`;
 }
+
+// ────────────────────────────────────────────────────────────
+// PHOTOS
+// ────────────────────────────────────────────────────────────
+async function loadCoachPhotos() {
+  const { data } = await sb.from('photos_progression')
+    .select('*').eq('client_id', selectedClient.id)
+    .order('date', { ascending: false });
+
+  const gallery = document.getElementById('coachPhotosGallery');
+  if (!data?.length) {
+    gallery.innerHTML = '<div class="empty-state"><div class="empty-icon">📷</div><p class="empty-title">Aucune photo de progression</p></div>';
+    return;
+  }
+
+  gallery.innerHTML = data.map(p => `
+    <div class="photo-card">
+      <img src="${p.url}" alt="Photo progression" loading="lazy" onclick="openPhotoModal('${p.url}')" />
+      <div class="photo-info">
+        <span class="photo-date">${formatDate(p.date)}</span>
+        ${p.notes ? `<span class="photo-notes">${esc(p.notes)}</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+window.openPhotoModal = function(url) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer';
+  overlay.innerHTML = `<img src="${url}" style="max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain" />`;
+  overlay.onclick = () => document.body.removeChild(overlay);
+  document.body.appendChild(overlay);
+};
+
+// ────────────────────────────────────────────────────────────
+// ABONNEMENTS
+// ────────────────────────────────────────────────────────────
+async function loadSubscription() {
+  const { data } = await sb.from('subscriptions')
+    .select('*').eq('client_id', selectedClient.id)
+    .order('created_at', { ascending: false }).limit(1).maybeSingle();
+
+  const el = document.getElementById('subscriptionStatus');
+  if (!data) {
+    el.innerHTML = '<p style="color:var(--text-muted);font-size:13px">Aucun abonnement actif.</p>';
+    return;
+  }
+
+  const badges = {
+    'actif':      '<span class="badge badge-green">Actif</span>',
+    'en_attente': '<span class="badge badge-yellow">En attente de paiement</span>',
+    'impayé':     '<span class="badge badge-red">Impayé</span>',
+    'annulé':     '<span class="badge badge-gray">Annulé</span>',
+  };
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-size:22px;font-weight:700;color:var(--accent)">${data.montant}€<span style="font-size:13px;color:var(--text-muted);font-weight:400">/mois</span></div>
+        ${data.current_period_end ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px">Renouvellement le ${formatDate(data.current_period_end)}</div>` : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        ${badges[data.statut] || data.statut}
+        ${data.statut === 'en_attente' ? `<button class="btn btn-primary btn-sm" onclick="envoyerSubscription('${data.id}')">Envoyer lien</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+window.saveSubscription = async function() {
+  const montant = parseFloat(document.getElementById('sub_montant').value);
+  if (isNaN(montant) || montant <= 0) { showModalError('subscriptionError', 'Montant invalide.'); return; }
+
+  const { data, error } = await sb.from('subscriptions').insert({
+    client_id: selectedClient.id,
+    coach_id:  currentCoach.id,
+    montant,
+    statut:    'en_attente',
+  }).select().single();
+
+  if (error) { showModalError('subscriptionError', error.message); return; }
+
+  closeModal('modalAddSubscription');
+  await envoyerSubscription(data.id);
+};
+
+window.envoyerSubscription = async function(sub_id) {
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch('https://wzaoqjlkbtemkudgoyxn.supabase.co/functions/v1/create-subscription', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ subscription_id: sub_id }),
+  });
+
+  const json = await res.json();
+  if (json.error) { alert('Erreur : ' + json.error); return; }
+
+  await navigator.clipboard.writeText(json.url);
+  alert('Lien d\'abonnement copié ! Envoie-le à ton client.');
+  await loadSubscription();
+};
+
+// ────────────────────────────────────────────────────────────
+// DEVIS & FACTURES
+// ────────────────────────────────────────────────────────────
+async function loadDevis() {
+  const { data } = await sb.from('devis').select('*')
+    .eq('client_id', selectedClient.id)
+    .order('created_at', { ascending: false });
+
+  const body = document.getElementById('devisBody');
+  if (!data?.length) {
+    body.innerHTML = '<tr><td colspan="5" class="card-empty">Aucun devis.</td></tr>';
+    return;
+  }
+
+  body.innerHTML = data.map(d => {
+    const statutBadge = {
+      'brouillon': '<span class="badge badge-gray">Brouillon</span>',
+      'envoyé':    '<span class="badge badge-yellow">Envoyé</span>',
+      'payé':      '<span class="badge badge-green">Payé</span>',
+    }[d.statut] || d.statut;
+
+    return `<tr>
+      <td style="font-weight:600">${esc(d.titre)}</td>
+      <td style="font-weight:600;color:var(--accent)">${d.montant} €</td>
+      <td>${statutBadge}</td>
+      <td>${formatDate(d.created_at)}</td>
+      <td>
+        ${d.statut !== 'payé' ? `<button class="btn btn-primary btn-sm" onclick="envoyerDevis('${d.id}')">Envoyer lien paiement</button>` : ''}
+        ${d.statut === 'payé' ? `<span style="font-size:12px;color:var(--text-muted)">Payé le ${formatDate(d.payé_le)}</span>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+window.saveDevis = async function() {
+  const titre    = document.getElementById('dv_titre').value.trim();
+  const montant  = parseFloat(document.getElementById('dv_montant').value);
+  const desc     = document.getElementById('dv_description').value.trim();
+
+  if (!titre)         { showModalError('devisError', 'Titre requis.'); return; }
+  if (isNaN(montant) || montant <= 0) { showModalError('devisError', 'Montant invalide.'); return; }
+
+  const { error } = await sb.from('devis').insert({
+    coach_id:    currentCoach.id,
+    client_id:   selectedClient.id,
+    titre,
+    description: desc || null,
+    montant,
+    statut:      'brouillon',
+  });
+
+  if (error) { showModalError('devisError', error.message); return; }
+  closeModal('modalAddDevis');
+  clearForm(['dv_titre', 'dv_description', 'dv_montant']);
+  await loadDevis();
+};
+
+window.envoyerDevis = async function(devis_id) {
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch(`https://wzaoqjlkbtemkudgoyxn.supabase.co/functions/v1/create-checkout`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ devis_id }),
+  });
+
+  const json = await res.json();
+  if (json.error) { alert('Erreur : ' + json.error); return; }
+
+  // Copier le lien dans le presse-papier
+  await navigator.clipboard.writeText(json.url);
+  alert('Lien de paiement copié ! Envoie-le à ton client.');
+  await loadDevis();
+};
+
+// ────────────────────────────────────────────────────────────
+// NOTIFICATIONS
+// ────────────────────────────────────────────────────────────
+let notifSubscription = null;
+
+async function loadNotifications() {
+  const { data } = await sb.from('notifications')
+    .select('*').eq('user_id', currentCoach.id)
+    .order('created_at', { ascending: false }).limit(20);
+
+  const unread = (data || []).filter(n => !n.read).length;
+  const badge = document.getElementById('notifBadge');
+  badge.textContent = unread;
+  badge.style.display = unread > 0 ? 'flex' : 'none';
+
+  const list = document.getElementById('notifList');
+  if (!data?.length) {
+    list.innerHTML = '<p style="padding:16px;font-size:13px;color:var(--text-muted)">Aucune notification.</p>';
+    return;
+  }
+  const icons = { message: '💬', seance: '📅', devis: '💶' };
+  list.innerHTML = data.map(n => `
+    <div class="notif-item ${n.read ? '' : 'unread'}" onclick="readNotif('${n.id}', '${n.type}')">
+      <span class="notif-icon">${icons[n.type] || '🔔'}</span>
+      <div class="notif-text">
+        <div class="notif-titre">${esc(n.titre)}</div>
+        <div class="notif-body">${esc(n.body || '')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.toggleNotifs = function() {
+  document.getElementById('notifDropdown').classList.toggle('open');
+  loadNotifications();
+};
+
+window.readNotif = async function(id, type) {
+  await sb.from('notifications').update({ read: true }).eq('id', id);
+  document.getElementById('notifDropdown').classList.remove('open');
+  if (type === 'message' && selectedClient) switchTab('messages');
+  await loadNotifications();
+};
+
+window.markAllRead = async function() {
+  await sb.from('notifications').update({ read: true })
+    .eq('user_id', currentCoach.id).eq('read', false);
+  await loadNotifications();
+};
+
+function subscribeNotifications() {
+  if (notifSubscription) notifSubscription.unsubscribe();
+  notifSubscription = sb.channel('notifs-coach-' + currentCoach.id)
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'notifications',
+      filter: `user_id=eq.${currentCoach.id}`
+    }, () => loadNotifications())
+    .subscribe();
+}
+
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('notifWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('notifDropdown')?.classList.remove('open');
+  }
+});
+
+// ────────────────────────────────────────────────────────────
+// MESSAGES
+// ────────────────────────────────────────────────────────────
+let msgSubscription = null;
+
+async function loadMessages() {
+  const cid = selectedClient.id;
+  const myId = currentCoach.id;
+
+  const { data } = await sb.from('messages')
+    .select('*')
+    .or(`and(sender_id.eq.${myId},receiver_id.eq.${cid}),and(sender_id.eq.${cid},receiver_id.eq.${myId})`)
+    .order('created_at', { ascending: true });
+
+  renderMessages(data || [], myId);
+
+  // Marquer les messages du client comme lus
+  await sb.from('messages').update({ read_at: new Date().toISOString() })
+    .eq('sender_id', cid).eq('receiver_id', myId).is('read_at', null);
+
+  // Temps réel
+  if (msgSubscription) msgSubscription.unsubscribe();
+  msgSubscription = sb.channel('chat-coach-' + cid)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async () => {
+      await loadMessages();
+    }).subscribe();
+}
+
+function renderMessages(messages, myId) {
+  const el = document.getElementById('chatMessages');
+  if (!messages.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p class="empty-title">Aucun message</p></div>';
+    return;
+  }
+  el.innerHTML = messages.map(m => {
+    const mine = m.sender_id === myId;
+    const time = new Date(m.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return `<div class="msg-row ${mine ? 'mine' : 'theirs'}">
+      <div class="msg-bubble">${esc(m.content)}</div>
+      <div class="msg-time">${time}</div>
+    </div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+window.sendMessage = async function() {
+  const input = document.getElementById('chatInput');
+  const content = input.value.trim();
+  if (!content || !selectedClient) return;
+  input.value = '';
+  await sb.from('messages').insert({
+    sender_id:   currentCoach.id,
+    receiver_id: selectedClient.id,
+    content,
+  });
+  await loadMessages();
+};
 
 // ────────────────────────────────────────────────────────────
 // BOOT

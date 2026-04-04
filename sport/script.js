@@ -117,10 +117,6 @@ function goToStep3() {
   `;
 
   document.getElementById('refVirement').textContent = devisNumero;
-
-  // ⚙️ REMPLACE CE LIEN par ton vrai lien Stripe Payment Link (120€/mois)
-  document.getElementById('stripeBtn').href = 'https://buy.stripe.com/LIEN_MENSUEL_120EUR';
-
   document.getElementById('paymentSuccess').classList.remove('visible');
   document.querySelector('.payment-block').style.display = '';
 
@@ -128,13 +124,36 @@ function goToStep3() {
   showStep('step3');
 }
 
-function handleStripeClick() {
-  const link = document.getElementById('stripeBtn').href;
-  if (link.includes('LIEN_MENSUEL')) {
-    showPaymentSuccess('Demande reçue ! Je te contacte dans les 24h pour finaliser ton inscription à 120€/mois.');
-    return false;
+async function handleStripeClick() {
+  const btn = document.getElementById('stripeBtn');
+  btn.style.opacity = '0.6';
+  btn.style.pointerEvents = 'none';
+  btn.textContent = 'Chargement…';
+
+  try {
+    const res = await fetch('https://wzaoqjlkbtemkudgoyxn.supabase.co/functions/v1/public-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prenom:      devisData.prenom,
+        nom:         devisData.nom,
+        email:       devisData.email,
+        titre:       `Forfait mensuel NLD — ${devisData.objectif}`,
+        montant:     120,
+        description: `Coaching personnalisé · Niveau ${devisData.niveau}`,
+      }),
+    });
+
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+    window.location.href = json.url;
+  } catch (err) {
+    btn.style.opacity = '';
+    btn.style.pointerEvents = '';
+    btn.innerHTML = '⚠️ Erreur — réessaie';
+    console.error(err);
   }
-  return true;
+  return false;
 }
 
 function confirmVirement() {

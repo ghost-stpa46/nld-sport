@@ -59,6 +59,19 @@
       <span style="font-family:var(--font-display);font-size:26px;color:var(--accent);letter-spacing:0.04em">NLD</span>
     </div>
     <div style="display:flex;align-items:center;gap:12px">
+      <div class="notif-wrap" id="notifWrap">
+        <button class="notif-btn" onclick="toggleNotifs()" id="notifBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header">
+            <span>Notifications</span>
+            <button onclick="markAllRead()" style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer">Tout marquer lu</button>
+          </div>
+          <div id="notifList"><p style="padding:16px;font-size:13px;color:var(--text-muted)">Aucune notification.</p></div>
+        </div>
+      </div>
       <div class="user-chip">
         <span class="dot"></span>
         <span id="clientChipName">Mon espace</span>
@@ -76,6 +89,10 @@
         <button class="tab-btn" onclick="switchTab('seances')">Séances</button>
         <button class="tab-btn" onclick="switchTab('nutrition')">Nutrition</button>
         <button class="tab-btn" onclick="switchTab('objectifs')">Objectifs</button>
+        <button class="tab-btn" onclick="switchTab('paiements')">Paiements</button>
+        <button class="tab-btn" onclick="switchTab('messages')">Messages</button>
+        <button class="tab-btn" onclick="switchTab('photos')">Photos</button>
+        <button class="tab-btn" onclick="switchTab('profil')">Profil</button>
       </div>
     </div>
 
@@ -209,6 +226,127 @@
         </div>
       </div>
 
+      <!-- ── TAB : PAIEMENTS ── -->
+      <div class="tab-panel" id="tab-paiements">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header"><span class="card-title">Mon abonnement</span></div>
+          <div class="card-body" id="clientSubscription">
+            <p style="color:var(--text-muted);font-size:13px">Aucun abonnement actif.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Mes devis & factures</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Titre</th><th>Montant</th><th>Statut</th><th>Date</th><th></th></tr>
+              </thead>
+              <tbody id="clientDevisBody">
+                <tr><td colspan="5" class="card-empty">Aucun devis.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB : MESSAGES ── -->
+      <div class="tab-panel" id="tab-messages">
+        <div class="chat-wrap">
+          <div class="chat-messages" id="chatMessages">
+            <div class="empty-state"><div class="empty-icon">💬</div><p class="empty-title">Aucun message</p></div>
+          </div>
+          <div class="chat-input-row">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Écrire un message…" onkeydown="if(event.key==='Enter')sendMessage()" />
+            <button class="btn btn-primary" onclick="sendMessage()">Envoyer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB : PHOTOS ── -->
+      <div class="tab-panel" id="tab-photos">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header">
+            <span class="card-title">Ajouter une photo</span>
+          </div>
+          <div class="card-body">
+            <div style="display:grid;gap:14px">
+              <div class="field-group">
+                <label>Date</label>
+                <input type="date" id="ph_date" />
+              </div>
+              <div class="field-group">
+                <label>Notes (optionnel)</label>
+                <input type="text" id="ph_notes" placeholder="Ex : Avant / Après, J+30…" />
+              </div>
+              <div class="field-group">
+                <label>Photo</label>
+                <input type="file" id="ph_file" accept="image/*" style="color:var(--text-muted);font-size:13px" />
+              </div>
+            </div>
+            <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="uploadPhoto()">Envoyer la photo</button>
+            <div id="photoUploadStatus" style="margin-top:10px;font-size:13px;color:var(--text-muted)"></div>
+          </div>
+        </div>
+        <div id="photosGallery" class="photos-grid">
+          <div class="empty-state"><div class="empty-icon">📷</div><p class="empty-title">Aucune photo</p></div>
+        </div>
+      </div>
+
+      <!-- ── TAB : PROFIL ── -->
+      <div class="tab-panel" id="tab-profil">
+        <div class="grid-2">
+
+          <!-- Infos personnelles -->
+          <div class="card">
+            <div class="card-header"><span class="card-title">Mes informations</span></div>
+            <div class="card-body">
+              <div class="form-grid" style="display:grid;gap:14px">
+                <div class="field-group">
+                  <label>Prénom</label>
+                  <input type="text" id="p_prenom" placeholder="Ton prénom" />
+                </div>
+                <div class="field-group">
+                  <label>Nom</label>
+                  <input type="text" id="p_nom" placeholder="Ton nom" />
+                </div>
+                <div class="field-group">
+                  <label>Téléphone</label>
+                  <input type="tel" id="p_telephone" placeholder="06 00 00 00 00" />
+                </div>
+              </div>
+              <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="saveProfile()">Enregistrer</button>
+              <div id="profileSuccess" class="success-box" style="display:none;margin-top:12px">Profil mis à jour !</div>
+              <div id="profileError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+            </div>
+          </div>
+
+          <!-- Sécurité -->
+          <div class="card">
+            <div class="card-header"><span class="card-title">Sécurité</span></div>
+            <div class="card-body">
+              <div class="form-grid" style="display:grid;gap:14px">
+                <div class="field-group">
+                  <label>Nouvel email</label>
+                  <input type="email" id="p_email" placeholder="nouvel@email.com" />
+                </div>
+                <div class="field-group">
+                  <label>Nouveau mot de passe</label>
+                  <input type="password" id="p_password" placeholder="8 caractères minimum" />
+                </div>
+                <div class="field-group">
+                  <label>Confirmer le mot de passe</label>
+                  <input type="password" id="p_password2" placeholder="••••••••" />
+                </div>
+              </div>
+              <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="saveSecurity()">Mettre à jour</button>
+              <div id="securitySuccess" class="success-box" style="display:none;margin-top:12px">Mis à jour !</div>
+              <div id="securityError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div><!-- /client-content -->
   </div><!-- /client-page -->
 </div><!-- /client-layout -->
@@ -327,11 +465,14 @@ async function init() {
   const ok = await requireClient();
   if (!ok) return;
 
-  // Build score buttons
   buildScoreButtons();
-  document.getElementById('ln_date').value = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('ln_date').value = today;
+  document.getElementById('ph_date').value = today;
 
   await loadApercu();
+  await loadNotifications();
+  subscribeNotifications();
 }
 
 // ────────────────────────────────────────────────────────────
@@ -350,6 +491,10 @@ window.switchTab = async function(tab) {
   if (tab === 'seances')   await loadSeances();
   if (tab === 'nutrition') await loadNutrition();
   if (tab === 'objectifs') await loadObjectifs();
+  if (tab === 'paiements') await loadPaiements();
+  if (tab === 'messages')  await loadMessages();
+  if (tab === 'photos')    await loadPhotos();
+  if (tab === 'profil')    loadProfilForm();
 };
 
 // ────────────────────────────────────────────────────────────
@@ -812,6 +957,449 @@ function badgeStatut(s) {
 function dotColor(s) {
   return s === 'atteint' ? 'var(--green)' : s === 'en_cours' ? 'var(--yellow)' : 'var(--red)';
 }
+
+// ────────────────────────────────────────────────────────────
+// PAIEMENTS
+// ────────────────────────────────────────────────────────────
+async function loadPaiements() {
+  // Abonnement
+  const { data: sub } = await sb.from('subscriptions')
+    .select('*').eq('client_id', currentClient.id)
+    .order('created_at', { ascending: false }).limit(1).maybeSingle();
+
+  const subEl = document.getElementById('clientSubscription');
+  if (sub) {
+    const badges = {
+      'actif':      '<span class="badge badge-green">Actif</span>',
+      'en_attente': '<span class="badge badge-yellow">En attente de paiement</span>',
+      'impayé':     '<span class="badge badge-red">Impayé</span>',
+      'annulé':     '<span class="badge badge-gray">Annulé</span>',
+    };
+    subEl.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:22px;font-weight:700;color:var(--accent)">${sub.montant}€<span style="font-size:13px;color:var(--text-muted);font-weight:400">/mois</span></div>
+          ${sub.current_period_end ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px">Renouvellement le ${formatDate(sub.current_period_end)}</div>` : ''}
+        </div>
+        ${badges[sub.statut] || sub.statut}
+      </div>
+    `;
+  } else {
+    subEl.innerHTML = '<p style="color:var(--text-muted);font-size:13px">Aucun abonnement actif.</p>';
+  }
+  const { data } = await sb.from('devis').select('*')
+    .eq('client_id', currentClient.id)
+    .order('created_at', { ascending: false });
+
+  const body = document.getElementById('clientDevisBody');
+  if (!data?.length) {
+    body.innerHTML = '<tr><td colspan="5" class="card-empty">Aucun devis.</td></tr>';
+    return;
+  }
+
+  body.innerHTML = data.map(d => {
+    const statutBadge = {
+      'brouillon': '<span class="badge badge-gray">En attente</span>',
+      'envoyé':    '<span class="badge badge-yellow">À payer</span>',
+      'payé':      '<span class="badge badge-green">Payé</span>',
+    }[d.statut] || d.statut;
+
+    return `<tr>
+      <td style="font-weight:600">${esc(d.titre)}</td>
+      <td style="font-weight:600;color:var(--accent)">${d.montant} €</td>
+      <td>${statutBadge}</td>
+      <td>${formatDate(d.created_at)}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        ${d.statut === 'envoyé' ? `<button class="btn btn-primary btn-sm" onclick="payerDevis('${d.id}')">Payer</button>` : ''}
+        ${d.statut === 'payé' ? `<button class="btn btn-secondary btn-sm" onclick="exportFacture('${d.id}')">PDF</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+window.exportFacture = async function(devis_id) {
+  const { data: d } = await sb.from('devis').select('*').eq('id', devis_id).single();
+  if (!d) return;
+
+  const client = currentClient;
+  const num    = 'NLD-' + new Date(d.created_at).getFullYear() + '-' + d.id.slice(0,6).toUpperCase();
+  const payéLe = d.payé_le ? formatDate(d.payé_le) : formatDate(d.created_at);
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Facture ${num}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #111; background: #fff; padding: 60px; max-width: 800px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; }
+    .logo { font-size: 36px; font-weight: 900; letter-spacing: 0.05em; color: #000; }
+    .logo-sub { font-size: 11px; color: #888; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 4px; }
+    .facture-label { font-size: 28px; font-weight: 700; color: #000; text-align: right; }
+    .facture-num { font-size: 13px; color: #888; text-align: right; margin-top: 4px; }
+    .meta { display: flex; gap: 40px; margin-bottom: 48px; }
+    .meta-block label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #888; display: block; margin-bottom: 6px; }
+    .meta-block p { font-size: 14px; color: #111; line-height: 1.6; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+    th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #888; padding: 10px 0; border-bottom: 2px solid #eee; }
+    td { padding: 16px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+    .total-row { display: flex; justify-content: flex-end; margin-top: 8px; }
+    .total-box { background: #f9f9f9; border-radius: 8px; padding: 20px 28px; min-width: 240px; }
+    .total-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; color: #555; }
+    .total-line.main { font-size: 20px; font-weight: 700; color: #000; margin-top: 12px; padding-top: 12px; border-top: 2px solid #eee; }
+    .badge { display: inline-block; background: #e6ffe0; color: #1a7a00; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; margin-top: 4px; }
+    .footer { margin-top: 60px; font-size: 11px; color: #aaa; text-align: center; }
+    @media print { body { padding: 20px; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="logo">NLD</div>
+      <div class="logo-sub">noLackinDiscipline</div>
+    </div>
+    <div>
+      <div class="facture-label">FACTURE</div>
+      <div class="facture-num">${num}</div>
+      <div class="facture-num">Émise le ${payéLe}</div>
+      <div style="margin-top:6px"><span class="badge">✓ Payée</span></div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <div class="meta-block">
+      <label>De</label>
+      <p><strong>noLackinDiscipline</strong><br>Coach sportif personnel<br>contact@nolackindiscipline.fr</p>
+    </div>
+    <div class="meta-block">
+      <label>Facturé à</label>
+      <p><strong>${esc(client.prenom)} ${esc(client.nom)}</strong><br>${esc(client.email || '')}</p>
+    </div>
+  </div>
+
+  <table>
+    <thead><tr><th>Description</th><th style="text-align:right">Montant</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>
+          <strong>${esc(d.titre)}</strong>
+          ${d.description ? `<br><span style="font-size:12px;color:#888">${esc(d.description)}</span>` : ''}
+        </td>
+        <td style="text-align:right;font-weight:600">${d.montant} €</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="total-row">
+    <div class="total-box">
+      <div class="total-line"><span>Sous-total HT</span><span>${d.montant} €</span></div>
+      <div class="total-line"><span>TVA (0%)</span><span>0 €</span></div>
+      <div class="total-line main"><span>Total</span><span>${d.montant} €</span></div>
+    </div>
+  </div>
+
+  <div class="footer">noLackinDiscipline · contact@nolackindiscipline.fr · Merci pour ta confiance.</div>
+
+  <script>window.onload = () => window.print();<\/script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+};
+
+window.payerDevis = async function(devis_id) {
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch(`https://wzaoqjlkbtemkudgoyxn.supabase.co/functions/v1/create-checkout`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ devis_id }),
+  });
+
+  const json = await res.json();
+  if (json.error) { alert('Erreur : ' + json.error); return; }
+  window.location.href = json.url;
+};
+
+// ────────────────────────────────────────────────────────────
+// PHOTOS
+// ────────────────────────────────────────────────────────────
+async function loadPhotos() {
+  const { data } = await sb.from('photos_progression')
+    .select('*').eq('client_id', currentClient.id)
+    .order('date', { ascending: false });
+
+  const gallery = document.getElementById('photosGallery');
+  if (!data?.length) {
+    gallery.innerHTML = '<div class="empty-state"><div class="empty-icon">📷</div><p class="empty-title">Aucune photo</p></div>';
+    return;
+  }
+
+  gallery.innerHTML = data.map(p => `
+    <div class="photo-card">
+      <img src="${p.url}" alt="Photo progression" loading="lazy" onclick="openPhotoModal('${p.url}')" />
+      <div class="photo-info">
+        <span class="photo-date">${formatDate(p.date)}</span>
+        ${p.notes ? `<span class="photo-notes">${esc(p.notes)}</span>` : ''}
+      </div>
+      <button class="photo-delete" onclick="deletePhoto('${p.id}', '${p.url}')">✕</button>
+    </div>
+  `).join('');
+}
+
+window.uploadPhoto = async function() {
+  const file   = document.getElementById('ph_file').files[0];
+  const date   = document.getElementById('ph_date').value;
+  const notes  = document.getElementById('ph_notes').value.trim();
+  const status = document.getElementById('photoUploadStatus');
+
+  if (!file) { status.textContent = 'Sélectionne une photo.'; return; }
+  if (!date) { status.textContent = 'Sélectionne une date.'; return; }
+
+  status.textContent = 'Envoi en cours…';
+
+  const ext  = file.name.split('.').pop();
+  const path = `${currentClient.id}/${Date.now()}.${ext}`;
+
+  const { error: uploadError } = await sb.storage
+    .from('progress-photos').upload(path, file, { upsert: false });
+
+  if (uploadError) { status.textContent = 'Erreur upload : ' + uploadError.message; return; }
+
+  const { data: { publicUrl } } = sb.storage.from('progress-photos').getPublicUrl(path);
+
+  // Pour bucket privé, utiliser signed URL
+  const { data: signedData } = await sb.storage
+    .from('progress-photos').createSignedUrl(path, 60 * 60 * 24 * 365);
+
+  const url = signedData?.signedUrl || publicUrl;
+
+  const { error } = await sb.from('photos_progression').insert({
+    client_id: currentClient.id,
+    url,
+    date,
+    notes: notes || null,
+  });
+
+  if (error) { status.textContent = 'Erreur sauvegarde : ' + error.message; return; }
+
+  status.textContent = 'Photo ajoutée !';
+  document.getElementById('ph_file').value  = '';
+  document.getElementById('ph_notes').value = '';
+  await loadPhotos();
+};
+
+window.deletePhoto = async function(id, url) {
+  if (!confirm('Supprimer cette photo ?')) return;
+  await sb.from('photos_progression').delete().eq('id', id);
+  await loadPhotos();
+};
+
+window.openPhotoModal = function(url) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer';
+  overlay.innerHTML = `<img src="${url}" style="max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain" />`;
+  overlay.onclick = () => document.body.removeChild(overlay);
+  document.body.appendChild(overlay);
+};
+
+// ────────────────────────────────────────────────────────────
+// PROFIL
+// ────────────────────────────────────────────────────────────
+function loadProfilForm() {
+  document.getElementById('p_prenom').value    = currentClient.prenom    || '';
+  document.getElementById('p_nom').value       = currentClient.nom       || '';
+  document.getElementById('p_telephone').value = currentClient.telephone || '';
+}
+
+window.saveProfile = async function() {
+  const prenom    = document.getElementById('p_prenom').value.trim();
+  const nom       = document.getElementById('p_nom').value.trim();
+  const telephone = document.getElementById('p_telephone').value.trim();
+  const okEl      = document.getElementById('profileSuccess');
+  const errEl     = document.getElementById('profileError');
+
+  okEl.style.display  = 'none';
+  errEl.style.display = 'none';
+
+  if (!prenom || !nom) { errEl.textContent = 'Prénom et nom requis.'; errEl.style.display = 'block'; return; }
+
+  const { error } = await sb.from('profiles').update({ prenom, nom, telephone: telephone || null })
+    .eq('id', currentClient.id);
+
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+
+  currentClient = { ...currentClient, prenom, nom, telephone };
+  document.getElementById('clientChipName').textContent = `${prenom} ${nom}`;
+  document.getElementById('welcomeName').textContent = prenom;
+  okEl.style.display = 'block';
+};
+
+window.saveSecurity = async function() {
+  const email     = document.getElementById('p_email').value.trim();
+  const password  = document.getElementById('p_password').value;
+  const password2 = document.getElementById('p_password2').value;
+  const okEl      = document.getElementById('securitySuccess');
+  const errEl     = document.getElementById('securityError');
+
+  okEl.style.display  = 'none';
+  errEl.style.display = 'none';
+
+  if (!email && !password) { errEl.textContent = 'Remplis au moins un champ.'; errEl.style.display = 'block'; return; }
+  if (password && password.length < 8) { errEl.textContent = 'Minimum 8 caractères.'; errEl.style.display = 'block'; return; }
+  if (password && password !== password2) { errEl.textContent = 'Les mots de passe ne correspondent pas.'; errEl.style.display = 'block'; return; }
+
+  const updates = {};
+  if (email)    updates.email    = email;
+  if (password) updates.password = password;
+
+  const { error } = await sb.auth.updateUser(updates);
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+
+  okEl.textContent = email
+    ? 'Email mis à jour ! Vérifie ta boîte mail pour confirmer.'
+    : 'Mot de passe mis à jour !';
+  okEl.style.display = 'block';
+  document.getElementById('p_email').value     = '';
+  document.getElementById('p_password').value  = '';
+  document.getElementById('p_password2').value = '';
+};
+
+// ────────────────────────────────────────────────────────────
+// NOTIFICATIONS
+// ────────────────────────────────────────────────────────────
+let notifSubscription = null;
+
+async function loadNotifications() {
+  const { data } = await sb.from('notifications')
+    .select('*').eq('user_id', currentClient.id)
+    .order('created_at', { ascending: false }).limit(20);
+
+  const unread = (data || []).filter(n => !n.read).length;
+  const badge = document.getElementById('notifBadge');
+  badge.textContent = unread;
+  badge.style.display = unread > 0 ? 'flex' : 'none';
+
+  const list = document.getElementById('notifList');
+  if (!data?.length) {
+    list.innerHTML = '<p style="padding:16px;font-size:13px;color:var(--text-muted)">Aucune notification.</p>';
+    return;
+  }
+  const icons = { message: '💬', seance: '📅', devis: '💶' };
+  list.innerHTML = data.map(n => `
+    <div class="notif-item ${n.read ? '' : 'unread'}" onclick="readNotif('${n.id}', '${n.type}')">
+      <span class="notif-icon">${icons[n.type] || '🔔'}</span>
+      <div class="notif-text">
+        <div class="notif-titre">${esc(n.titre)}</div>
+        <div class="notif-body">${esc(n.body || '')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.toggleNotifs = function() {
+  document.getElementById('notifDropdown').classList.toggle('open');
+  loadNotifications();
+};
+
+window.readNotif = async function(id, type) {
+  await sb.from('notifications').update({ read: true }).eq('id', id);
+  document.getElementById('notifDropdown').classList.remove('open');
+  if (type === 'message') switchTab('messages');
+  else if (type === 'seance') switchTab('seances');
+  else if (type === 'devis') switchTab('paiements');
+  await loadNotifications();
+};
+
+window.markAllRead = async function() {
+  await sb.from('notifications').update({ read: true })
+    .eq('user_id', currentClient.id).eq('read', false);
+  await loadNotifications();
+};
+
+function subscribeNotifications() {
+  if (notifSubscription) notifSubscription.unsubscribe();
+  notifSubscription = sb.channel('notifs-' + currentClient.id)
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'notifications',
+      filter: `user_id=eq.${currentClient.id}`
+    }, () => loadNotifications())
+    .subscribe();
+}
+
+// Fermer dropdown si clic dehors
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('notifWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('notifDropdown')?.classList.remove('open');
+  }
+});
+
+// ────────────────────────────────────────────────────────────
+// MESSAGES
+// ────────────────────────────────────────────────────────────
+let msgSubscription = null;
+
+async function loadMessages() {
+  const myId    = currentClient.id;
+  const coachId = currentClient.coach_id;
+  if (!coachId) {
+    document.getElementById('chatMessages').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">💬</div><p class="empty-title">Aucun coach assigné</p></div>';
+    return;
+  }
+
+  const { data } = await sb.from('messages')
+    .select('*')
+    .or(`and(sender_id.eq.${myId},receiver_id.eq.${coachId}),and(sender_id.eq.${coachId},receiver_id.eq.${myId})`)
+    .order('created_at', { ascending: true });
+
+  renderMessages(data || [], myId);
+
+  await sb.from('messages').update({ read_at: new Date().toISOString() })
+    .eq('sender_id', coachId).eq('receiver_id', myId).is('read_at', null);
+
+  if (msgSubscription) msgSubscription.unsubscribe();
+  msgSubscription = sb.channel('chat-client-' + myId)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async () => {
+      await loadMessages();
+    }).subscribe();
+}
+
+function renderMessages(messages, myId) {
+  const el = document.getElementById('chatMessages');
+  if (!messages.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p class="empty-title">Aucun message</p></div>';
+    return;
+  }
+  el.innerHTML = messages.map(m => {
+    const mine = m.sender_id === myId;
+    const time = new Date(m.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return `<div class="msg-row ${mine ? 'mine' : 'theirs'}">
+      <div class="msg-bubble">${esc(m.content)}</div>
+      <div class="msg-time">${time}</div>
+    </div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+window.sendMessage = async function() {
+  const input = document.getElementById('chatInput');
+  const content = input.value.trim();
+  if (!content) return;
+  input.value = '';
+  await sb.from('messages').insert({
+    sender_id:   currentClient.id,
+    receiver_id: currentClient.coach_id,
+    content,
+  });
+  await loadMessages();
+};
 
 // ────────────────────────────────────────────────────────────
 // BOOT
