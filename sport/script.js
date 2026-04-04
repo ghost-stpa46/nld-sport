@@ -299,6 +299,14 @@ function showError(el, msg) {
   el.classList.add('visible');
 }
 
+// FAQ accordéon
+function toggleFaq(btn) {
+  const item = btn.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
 // Parallax léger sur les orbs du hero
 document.addEventListener('mousemove', (e) => {
   const x = (e.clientX / window.innerWidth - 0.5) * 20;
