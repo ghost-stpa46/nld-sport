@@ -44,9 +44,13 @@ Deno.serve(async (req) => {
           coach_id: devisData.coach_id,
         }, { onConflict: 'email' });
 
-        // Envoyer un email de notification au coach
+        // Envoyer les emails
         const resendKey = Deno.env.get('RESEND_API_KEY');
+        const siteOrigin = Deno.env.get('SITE_URL') || 'https://ghost-stpa46.github.io/nld-sport';
+        const registerUrl = `${siteOrigin}/login.html?paiement=ok&email=${encodeURIComponent(devisData.prospect_email)}`;
+
         if (resendKey) {
+          // Email au coach
           await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
@@ -66,6 +70,44 @@ Deno.serve(async (req) => {
                 <p><strong>Devis :</strong> ${session.metadata.devis_id}</p>
                 <hr/>
                 <p>Le client peut maintenant créer son compte sur le site.</p>
+              `,
+            }),
+          });
+
+          // Email au client
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${resendKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: 'NLD <onboarding@resend.dev>',
+              to: devisData.prospect_email,
+              subject: `Bienvenue chez noLackinDiscipline — Crée ton compte`,
+              html: `
+                <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#0a0a0a;color:#ffffff;padding:40px 32px;border-radius:12px;">
+                  <h1 style="font-size:32px;color:#c8ff00;margin:0 0 8px">NLD</h1>
+                  <p style="color:#888;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 32px">noLackinDiscipline</p>
+
+                  <h2 style="font-size:22px;margin:0 0 16px">Paiement confirmé, ${devisData.prospect_prenom} !</h2>
+                  <p style="color:#ccc;line-height:1.6;margin:0 0 12px">
+                    Ton paiement de <strong style="color:#fff">${devisData.montant} €</strong> pour le <strong style="color:#fff">${devisData.titre}</strong> a bien été reçu.
+                  </p>
+                  <p style="color:#ccc;line-height:1.6;margin:0 0 32px">
+                    Il ne te reste plus qu'à créer ton compte pour accéder à ton espace client.
+                  </p>
+
+                  <a href="${registerUrl}" style="display:inline-block;background:#c8ff00;color:#000;font-weight:700;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:15px;">
+                    Créer mon compte →
+                  </a>
+
+                  <hr style="border:none;border-top:1px solid #222;margin:40px 0 24px"/>
+                  <p style="color:#555;font-size:12px;margin:0">
+                    Ce qui te manque, c'est pas l'envie. C'est la discipline.<br/>
+                    noLackinDiscipline — nolackindiscipline@gmail.com
+                  </p>
+                </div>
               `,
             }),
           });
