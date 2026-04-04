@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           from: 'NLD <onboarding@resend.dev>',
-          to: 'stanpayikelike@gmail.com',
+          to: 'nolackindiscipline@gmail.com',
           subject: `Virement déclaré — ${prenom} ${nom}`,
           html: `
             <h2>Virement bancaire déclaré</h2>
