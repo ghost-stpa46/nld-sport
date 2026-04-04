@@ -156,9 +156,33 @@ async function handleStripeClick() {
   return false;
 }
 
-function confirmVirement() {
+async function confirmVirement() {
+  const btn = document.querySelector('.virement-box .btn-outline');
+  if (btn) { btn.disabled = true; btn.textContent = 'Envoi en cours…'; }
+
+  try {
+    const res = await fetch('https://wzaoqjlkbtemkudgoyxn.supabase.co/functions/v1/confirm-virement', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prenom:    devisData.prenom,
+        nom:       devisData.nom,
+        email:     devisData.email,
+        tel:       devisData.tel || '',
+        objectif:  devisData.objectif,
+        niveau:    devisData.niveau,
+        montant:   120,
+        reference: devisNumero,
+      }),
+    });
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+  } catch (err) {
+    console.error(err);
+  }
+
   showPaymentSuccess(
-    'Merci ! Dès réception de ton virement, je confirme ta place et on démarre. Référence : ' + devisNumero
+    'Merci ! Un email de confirmation t\'a été envoyé. Tu peux dès maintenant créer ton compte. Référence : ' + devisNumero
   );
 }
 
