@@ -42,13 +42,6 @@ Deno.serve(async (req) => {
       prospect_nom:    nom,
     });
 
-    // Ajouter dans pending_clients
-    await sb.from('pending_clients').upsert({
-      email,
-      prenom,
-      nom,
-      coach_id: coach.id,
-    }, { onConflict: 'email' });
 
     // Envoyer les emails
     const resendKey = Deno.env.get('RESEND_API_KEY');

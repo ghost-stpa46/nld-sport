@@ -111,6 +111,16 @@
         </div>
 
         <div class="card" style="margin-top:24px">
+          <div class="card-header">
+            <span class="card-title">Virements à confirmer</span>
+            <span id="ov_virements_badge" style="display:none;background:var(--accent);color:#000;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px"></span>
+          </div>
+          <div id="ov_virements">
+            <div class="empty-state"><div class="empty-icon">🏦</div><p class="empty-title">Aucun virement en attente</p></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:24px">
           <div class="card-header"><span class="card-title">Tous les clients</span></div>
           <div id="ov_clients_list">
             <div class="empty-state"><div class="empty-icon">👤</div><p class="empty-title">Aucun client</p></div>
@@ -829,12 +839,14 @@ async function loadOverview() {
     { data: devisEnAttente },
     { data: messagesNonLus },
     { data: seancesAVenir },
+    { data: virementsEnAttente },
   ] = await Promise.all([
     sb.from('profiles').select('id,prenom,nom,objectif,niveau').eq('coach_id', coachId).eq('role', 'client'),
     sb.from('seances').select('id').eq('coach_id', coachId).gte('date', weekStart).lte('date', today),
     sb.from('devis').select('id,titre,montant,client_id,prospect_prenom,prospect_nom').eq('coach_id', coachId).eq('statut', 'envoyé'),
     sb.from('messages').select('id').eq('receiver_id', coachId).is('read_at', null),
     sb.from('seances').select('*').eq('coach_id', coachId).gte('date', today).lte('date', in7days).order('date'),
+    sb.from('devis').select('id,titre,montant,prospect_prenom,prospect_nom,prospect_email,created_at').eq('coach_id', coachId).eq('statut', 'virement_en_attente').order('created_at', { ascending: false }),
   ]);
 
   document.getElementById('ov_clients').textContent  = clients?.length ?? 0;
@@ -882,6 +894,29 @@ async function loadOverview() {
     }).join('');
   } else {
     devisEl.innerHTML = '<div class="empty-state"><div class="empty-icon">💶</div><p class="empty-title">Aucun devis en attente</p></div>';
+  }
+
+  // Virements en attente
+  const virementsEl = document.getElementById('ov_virements');
+  const virementsBadge = document.getElementById('ov_virements_badge');
+  if (virementsEnAttente?.length) {
+    virementsBadge.textContent = virementsEnAttente.length;
+    virementsBadge.style.display = 'inline';
+    virementsEl.innerHTML = virementsEnAttente.map(v => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:13px;font-weight:600">${esc(v.prospect_prenom)} ${esc(v.prospect_nom)}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${esc(v.prospect_email)} · ${formatDate(v.created_at)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-weight:700;color:var(--accent)">${v.montant}€</span>
+          <button class="btn btn-primary btn-sm" onclick="confirmerVirement('${v.id}', '${esc(v.prospect_prenom)} ${esc(v.prospect_nom)}')">Confirmer réception</button>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    virementsBadge.style.display = 'none';
+    virementsEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🏦</div><p class="empty-title">Aucun virement en attente</p></div>';
   }
 
   // Liste clients
@@ -1796,6 +1831,26 @@ window.saveDevis = async function() {
   closeModal('modalAddDevis');
   clearForm(['dv_titre', 'dv_description', 'dv_montant']);
   await loadDevis();
+};
+
+window.confirmerVirement = async function(devis_id, clientName) {
+  if (!confirm(`Confirmer la réception du virement de ${clientName} ?`)) return;
+
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch('https://wzaoqjlkbtemkudgoyxn.supabase.co/functions/v1/validate-virement', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ devis_id }),
+  });
+
+  const json = await res.json();
+  if (json.error) { alert('Erreur : ' + json.error); return; }
+
+  alert(`Virement confirmé ! Un email a été envoyé à ${clientName} pour créer son compte.`);
+  await loadOverview();
 };
 
 window.envoyerDevis = async function(devis_id) {
