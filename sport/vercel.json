@@ -1,5 +1,7 @@
 {
-  "outputDirectory": ".",
-  "cleanUrls": true,
-  "trailingSlash": false
+  "version": 2,
+  "routes": [
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
 }
