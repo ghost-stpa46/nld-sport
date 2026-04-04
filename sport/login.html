@@ -453,10 +453,10 @@
       const emailPayé = params.get('email') || '';
       switchMode('register');
       if (emailPayé) {
-        const regEmailInput = document.getElementById('regEmail') as HTMLInputElement;
+        const regEmailInput = document.getElementById('regEmail');
         if (regEmailInput) regEmailInput.value = emailPayé;
       }
-      const okBox = document.getElementById('registerSuccess') as HTMLElement;
+      const okBox = document.getElementById('registerSuccess');
       okBox.textContent = 'Paiement confirmé ! Crée maintenant ton compte pour accéder à ton espace.';
       okBox.classList.add('visible');
       // Nettoyer l'URL sans recharger
