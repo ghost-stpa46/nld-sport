@@ -1981,4 +1981,71 @@ footer p {
   .montant {
     font-size: 80px;
   }
+
+  .coach-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .coach-avatar {
+    width: 100px;
+    height: 100px;
+    font-size: 42px;
+  }
+}
+
+/* ── COACH / QUI JE SUIS ── */
+.coach {
+  padding: 100px 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.coach-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 64px;
+  align-items: start;
+}
+
+.coach-left {
+  display: flex;
+  justify-content: center;
+}
+
+.coach-avatar {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c8ff00 0%, #8ab800 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 72px;
+  color: #000;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  box-shadow: 0 0 60px rgba(200,255,0,0.15);
+}
+
+.coach-right .section-title {
+  margin-bottom: 24px;
+}
+
+.coach-text {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+.accent-quote {
+  font-style: italic;
+  color: var(--accent) !important;
+  font-size: 15px;
+  border-left: 2px solid var(--accent);
+  padding-left: 16px;
+  margin-top: 24px;
 }
