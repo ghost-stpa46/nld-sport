@@ -146,12 +146,13 @@ async function handleStripeClick() {
 
     const json = await res.json();
     if (json.error) throw new Error(json.error);
+    if (!json.url) throw new Error('URL de paiement manquante');
     window.location.href = json.url;
   } catch (err) {
     btn.style.opacity = '';
     btn.style.pointerEvents = '';
     btn.innerHTML = '⚠️ Erreur — réessaie';
-    console.error(err);
+    console.error('Stripe error:', err.message);
   }
   return false;
 }
