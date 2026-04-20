@@ -30,6 +30,14 @@ body {
   font-size: 16px;
   line-height: 1.6;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
 
 .container {
@@ -1991,6 +1999,467 @@ footer p {
     width: 100px;
     height: 100px;
     font-size: 42px;
+  }
+}
+
+/* === TABLET (640px - 768px) === */
+@media (max-width: 768px) and (min-width: 640px) {
+  nav {
+    padding: 16px 20px;
+  }
+
+  .nav-links {
+    gap: 10px;
+  }
+
+  .hero {
+    padding: 80px 20px 50px;
+  }
+
+  .manifeste-grid {
+    gap: 30px;
+  }
+
+  .offre-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .container {
+    padding: 0 20px;
+  }
+}
+
+/* === SMALL MOBILE (480px - 640px) === */
+@media (max-width: 640px) {
+  :root {
+    --font-display: 'Bebas Neue', sans-serif;
+    font-size: 15px;
+  }
+
+  nav {
+    padding: 14px 16px;
+    flex-wrap: wrap;
+  }
+
+  .nav-inner {
+    width: 100%;
+  }
+
+  .nav-links {
+    gap: 6px;
+  }
+
+  .nav-cta {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .logo {
+    font-size: 24px;
+  }
+
+  .hero {
+    padding: 70px 16px 40px;
+  }
+
+  .hero-title {
+    font-size: clamp(42px, 12vw, 60px);
+    margin-bottom: 24px;
+  }
+
+  .hero-label {
+    font-size: 11px;
+    margin-bottom: 20px;
+  }
+
+  .hero-sub {
+    font-size: 16px;
+    margin-bottom: 32px;
+  }
+
+  .btn-primary {
+    padding: 14px 32px;
+    font-size: 12px;
+  }
+
+  .scroll-hint {
+    bottom: 20px;
+  }
+
+  .manifeste {
+    padding: 60px 0;
+  }
+
+  .manifeste-grid {
+    gap: 24px;
+  }
+
+  .manifeste-left h2 {
+    font-size: clamp(32px, 8vw, 48px);
+  }
+
+  .manifeste-right p {
+    font-size: 14px;
+  }
+
+  .section-title {
+    font-size: clamp(28px, 6vw, 42px);
+    margin-bottom: 32px;
+  }
+
+  .offre {
+    padding: 60px 0;
+  }
+
+  .offre-grid {
+    gap: 16px;
+  }
+
+  .offre-card {
+    padding: 24px 20px;
+  }
+
+  .offre-card h3 {
+    font-size: 18px;
+  }
+
+  .offre-card p {
+    font-size: 14px;
+  }
+
+  .prix {
+    padding: 60px 0;
+  }
+
+  .prix-card {
+    padding: 32px 20px;
+  }
+
+  .montant {
+    font-size: 72px;
+  }
+
+  .devise {
+    font-size: 28px;
+  }
+
+  .contact {
+    padding: 60px 0;
+  }
+
+  .contact-form {
+    max-width: 100%;
+  }
+
+  .form-row {
+    gap: 12px;
+  }
+
+  .contact-form input,
+  .contact-form textarea {
+    padding: 14px 16px;
+    font-size: 14px;
+  }
+
+  footer {
+    padding: 32px 0;
+  }
+
+  footer .logo {
+    font-size: 16px;
+  }
+
+  footer p {
+    font-size: 12px;
+  }
+
+  .devis-modal {
+    padding: 20px 16px;
+  }
+
+  .step-title {
+    font-size: 24px;
+  }
+
+  .devis-form .form-row {
+    gap: 12px;
+  }
+
+  .field-group input,
+  .field-group select,
+  .field-group textarea {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+
+  .radio-group {
+    gap: 8px;
+  }
+
+  .radio-option {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .prix-liste {
+    gap: 12px;
+  }
+
+  .prix-liste li {
+    font-size: 14px;
+  }
+}
+
+/* === EXTRA SMALL (max 480px) === */
+@media (max-width: 480px) {
+  :root {
+    font-size: 14px;
+  }
+
+  nav {
+    padding: 12px 12px;
+  }
+
+  .nav-inner {
+    gap: 8px;
+  }
+
+  .nav-links {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .nav-cta {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .logo {
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+
+  .hero {
+    padding: 60px 12px 30px;
+    min-height: auto;
+  }
+
+  .hero-title {
+    font-size: clamp(32px, 10vw, 48px);
+    margin-bottom: 16px;
+    line-height: 1;
+  }
+
+  .hero-label {
+    font-size: 10px;
+    margin-bottom: 16px;
+  }
+
+  .hero-sub {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  .btn-primary {
+    padding: 12px 28px;
+    font-size: 11px;
+  }
+
+  .manifeste {
+    padding: 40px 0;
+  }
+
+  .manifeste-grid {
+    gap: 20px;
+  }
+
+  .manifeste-left h2 {
+    font-size: clamp(24px, 7vw, 36px);
+  }
+
+  .manifeste-right p {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .section-label {
+    font-size: 10px;
+  }
+
+  .section-title {
+    font-size: clamp(24px, 5vw, 32px);
+    margin-bottom: 24px;
+  }
+
+  .offre {
+    padding: 40px 0;
+  }
+
+  .offre-card {
+    padding: 20px 16px;
+  }
+
+  .offre-card h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .offre-card p {
+    font-size: 13px;
+  }
+
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 16px;
+  }
+
+  .prix {
+    padding: 40px 0;
+  }
+
+  .prix-card {
+    padding: 24px 16px;
+    max-width: 100%;
+  }
+
+  .montant {
+    font-size: 60px;
+  }
+
+  .devise {
+    font-size: 24px;
+  }
+
+  .contact {
+    padding: 40px 0;
+  }
+
+  .contact-form {
+    gap: 14px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .contact-form input,
+  .contact-form textarea {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+
+  footer {
+    padding: 24px 0;
+  }
+
+  footer .container {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  footer .logo {
+    font-size: 16px;
+  }
+
+  .container {
+    padding: 0 12px;
+  }
+
+  .devis-overlay {
+    padding: 12px;
+  }
+
+  .devis-modal {
+    padding: 16px 14px;
+    max-height: 98vh;
+  }
+
+  .devis-modal-header {
+    margin-bottom: 20px;
+  }
+
+  .step-title {
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+
+  .step-desc {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .devis-form {
+    gap: 16px;
+  }
+
+  .devis-form .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .field-group label {
+    font-size: 10px;
+  }
+
+  .field-group input,
+  .field-group select,
+  .field-group textarea {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .radio-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .radio-option {
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .forfait-option {
+    padding: 14px 16px;
+  }
+
+  .forfait-price {
+    font-size: 20px;
+  }
+
+  .prix-liste {
+    gap: 10px;
+  }
+
+  .prix-liste li {
+    font-size: 13px;
+  }
+
+  .prix-liste li svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .payment-recap {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .virement-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 6px 0;
+  }
+
+  .steps-bar {
+    margin-bottom: 30px;
+  }
+
+  .step-item p {
+    display: none;
   }
 }
 

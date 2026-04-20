@@ -1099,11 +1099,396 @@ td.muted { color: var(--text-muted); }
   .tab-btn { padding: 10px 12px; font-size: 12px; }
 }
 
+@media (max-width: 640px) {
+  :root {
+    --sidebar-w: 0;
+    --navbar-h: 56px;
+  }
+
+  .dash-layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: var(--sidebar-w);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 200;
+  }
+
+  .sidebar.open {
+    width: 240px;
+    transform: translateX(0);
+  }
+
+  .topbar {
+    height: var(--navbar-h);
+    padding: 0 12px;
+    gap: 12px;
+  }
+
+  .topbar-menu-btn {
+    display: flex;
+  }
+
+  .topbar-left,
+  .topbar-right {
+    gap: 10px;
+  }
+
+  .topbar-logo {
+    font-size: 22px;
+  }
+
+  .topbar-client-name {
+    font-size: 14px;
+  }
+
+  .page-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 12px 24px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  .tabs-bar {
+    gap: 0;
+    margin-bottom: 16px;
+  }
+
+  .tab-btn {
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .card {
+    border-radius: 8px;
+  }
+
+  .card-header {
+    padding: 14px 16px;
+  }
+
+  .card-title {
+    font-size: 13px;
+  }
+
+  .card-body {
+    padding: 16px;
+  }
+
+  .macro-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .macro-card {
+    padding: 12px;
+  }
+
+  .macro-value {
+    font-size: 24px;
+  }
+
+  .seance-row {
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .seance-divider {
+    display: none;
+  }
+
+  .seance-date {
+    width: 48px;
+  }
+
+  .seance-day {
+    font-size: 20px;
+  }
+
+  .objectif-card {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .welcome-card {
+    padding: 20px;
+  }
+
+  .welcome-card::after {
+    font-size: 64px;
+  }
+
+  .welcome-greeting {
+    font-size: 24px;
+  }
+
+  .welcome-sub {
+    font-size: 12px;
+  }
+
+  .photos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .photo-card img {
+    height: 150px;
+  }
+}
+
 @media (max-width: 480px) {
-  .stats-grid { grid-template-columns: 1fr; }
-  .macro-grid { grid-template-columns: 1fr 1fr; }
-  .modal { max-height: 95vh; }
-  .page-area { padding: 16px 12px 24px; }
+  :root {
+    font-size: 13px;
+  }
+
+  .topbar {
+    height: 52px;
+    padding: 0 10px;
+  }
+
+  .topbar-logo {
+    font-size: 18px;
+  }
+
+  .topbar-client-name {
+    display: none;
+  }
+
+  .topbar-right {
+    gap: 6px;
+  }
+
+  .user-chip {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .btn-logout {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .page-area {
+    padding: 12px 10px 20px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .page-sub {
+    font-size: 12px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 14px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    margin-bottom: 6px;
+  }
+
+  .tabs-bar {
+    margin-bottom: 12px;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  .card-header {
+    padding: 12px 14px;
+  }
+
+  .card-body {
+    padding: 14px;
+  }
+
+  .macro-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .macro-card {
+    padding: 10px;
+  }
+
+  .macro-value {
+    font-size: 20px;
+  }
+
+  .macro-label {
+    font-size: 10px;
+  }
+
+  .seance-row {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .seance-date {
+    width: 40px;
+  }
+
+  .seance-day {
+    font-size: 18px;
+  }
+
+  .seance-info {
+    min-width: 0;
+  }
+
+  .seance-titre {
+    font-size: 12px;
+  }
+
+  .seance-meta {
+    font-size: 11px;
+  }
+
+  .seance-actions {
+    gap: 4px;
+  }
+
+  .btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .btn-sm {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .objectif-card {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .objectif-titre {
+    font-size: 13px;
+  }
+
+  .objectif-desc {
+    font-size: 11px;
+  }
+
+  .welcome-card {
+    padding: 16px;
+  }
+
+  .welcome-card::after {
+    font-size: 48px;
+    right: 12px;
+  }
+
+  .welcome-greeting {
+    font-size: 18px;
+  }
+
+  .welcome-sub {
+    font-size: 11px;
+  }
+
+  .chat-wrap {
+    height: calc(100vh - 180px);
+    min-height: 300px;
+  }
+
+  .chat-messages {
+    padding: 16px;
+    gap: 8px;
+  }
+
+  .chat-input {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .msg-row {
+    max-width: 85%;
+  }
+
+  .msg-bubble {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .notif-dropdown {
+    width: 280px;
+  }
+
+  .photos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .photo-card img {
+    height: 120px;
+  }
+
+  .photo-info {
+    padding: 8px 10px;
+  }
+
+  .photo-date {
+    font-size: 11px;
+  }
+
+  .photo-notes {
+    font-size: 10px;
+  }
+
+  .modal {
+    max-height: 98vh;
+    max-width: 95vw;
+  }
 }
 
 /* ── CHAT / MESSAGES ── */
