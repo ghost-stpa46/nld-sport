@@ -553,6 +553,7 @@ footer .container {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
 }
 
 footer .logo {
@@ -563,6 +564,52 @@ footer .logo {
 footer p {
   font-size: 13px;
   color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  footer .container {
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  footer {
+    padding: 32px 0;
+  }
+
+  footer .container {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  footer .logo {
+    font-size: 16px;
+  }
+
+  footer p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  footer {
+    padding: 24px 0;
+  }
+
+  footer .container {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  footer .logo {
+    font-size: 14px;
+  }
+
+  footer p {
+    font-size: 11px;
+  }
 }
 
 /* === NAV LINKS === */
@@ -2478,6 +2525,59 @@ footer p {
   align-items: start;
 }
 
+@media (max-width: 768px) {
+  .coach-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    align-items: center;
+  }
+
+  .coach-left {
+    order: -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .coach {
+    padding: 60px 0;
+  }
+
+  .coach-grid {
+    gap: 24px;
+  }
+
+  .coach-avatar {
+    width: 120px;
+    height: 120px;
+    font-size: 48px;
+  }
+
+  .coach-text {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .accent-quote {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .coach-avatar {
+    width: 100px;
+    height: 100px;
+    font-size: 42px;
+  }
+
+  .coach-text {
+    font-size: 12px;
+  }
+
+  .coach-right .section-title {
+    margin-bottom: 16px;
+  }
+}
+
 .coach-left {
   display: flex;
   justify-content: center;
@@ -2596,7 +2696,60 @@ footer p {
 
 @media (max-width: 900px) {
   .temo-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .temoignages {
+    padding: 60px 0;
+  }
+
+  .temo-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  .temo-card {
+    padding: 20px;
+  }
+
+  .temo-text {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .temo-grid {
+    gap: 12px;
+  }
+
+  .temo-card {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .temo-stars {
+    font-size: 12px;
+  }
+
+  .temo-text {
+    font-size: 12px;
+  }
+
+  .temo-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .temo-name {
+    font-size: 12px;
+  }
+
+  .temo-meta {
+    font-size: 11px;
   }
 }
 
@@ -2616,6 +2769,26 @@ footer p {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+@media (max-width: 640px) {
+  .faq {
+    padding: 60px 0;
+  }
+
+  .faq-list {
+    margin-top: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .faq {
+    padding: 40px 0;
+  }
+
+  .faq-list {
+    margin-top: 24px;
+  }
 }
 
 .faq-item {
@@ -2642,6 +2815,26 @@ footer p {
   cursor: pointer;
   text-align: left;
   transition: color 0.2s;
+}
+
+@media (max-width: 640px) {
+  .faq-question {
+    padding: 16px 18px;
+    font-size: 14px;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .faq-question {
+    padding: 14px 16px;
+    font-size: 13px;
+    gap: 10px;
+  }
+
+  .faq-icon {
+    font-size: 18px;
+  }
 }
 
 .faq-question:hover { color: var(--accent); }
