@@ -339,8 +339,17 @@ nav {
     gap: 20px;
   }
 
+  .offre-card {
+    padding: 40px 28px;
+  }
+
   .offre-card-img {
-    height: 180px;
+    height: 250px;
+  }
+
+  .coach-photo {
+    width: 300px;
+    height: 300px;
   }
 }
 
@@ -351,30 +360,40 @@ nav {
   }
 
   .offre-card {
-    padding: 28px 20px;
+    padding: 32px 24px;
   }
 
   .offre-card-img {
-    height: 220px;
+    height: 260px;
     margin-bottom: 16px;
+  }
+
+  .coach-photo {
+    width: 280px;
+    height: 280px;
   }
 }
 
 @media (max-width: 480px) {
   .offre-card {
-    padding: 20px 16px;
+    padding: 24px 18px;
   }
 
   .offre-card-img {
-    height: 200px;
+    height: 240px;
     margin-bottom: 12px;
+  }
+
+  .coach-photo {
+    width: 220px;
+    height: 220px;
   }
 }
 
 .offre-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  padding: 40px 32px;
+  padding: 48px 32px;
   border-radius: 4px;
   transition: border-color 0.3s ease;
   position: relative;
@@ -383,7 +402,7 @@ nav {
 
 .offre-card-img {
   width: 100%;
-  height: 200px;
+  height: 280px;
   object-fit: contain;
   border-radius: 2px;
   margin-bottom: 24px;
@@ -2696,8 +2715,8 @@ footer p {
 }
 
 .coach-photo {
-  width: 280px;
-  height: 280px;
+  width: 380px;
+  height: 380px;
   border-radius: 8px;
   object-fit: contain;
   box-shadow: 0 8px 32px rgba(0,0,0,0.4);
