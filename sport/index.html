@@ -25,6 +25,7 @@
 
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
 
@@ -521,5 +522,27 @@
   </div>
 
   <script src="script.js"></script>
+  <script>
+    const stripe = Stripe("pk_live_51TITijA0fB2sTInpQXodSC8d8BuvRAbrV68PRI4gph5HSVk1gra4mGMErxtvgwMjaIDGOqgEC8WhHJiG2itETbbU00aXELNSVx");
+
+    async function handleStripeClick() {
+      try {
+        const res = await fetch("/api/stripe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Impossible de créer la session de paiement.");
+        if (!data.url) throw new Error("Aucune URL de paiement reçue.");
+
+        window.location.href = data.url;
+      } catch (error) {
+        console.error("Stripe error", error);
+        alert(error.message || "Erreur de paiement. Réessaie plus tard.");
+      }
+    }
+  </script>
 </body>
 </html>

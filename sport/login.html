@@ -188,6 +188,18 @@
     }
     .error-box.visible { display: block; }
 
+    .warning-box {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: rgba(255,200,0,0.08);
+      border: 1px solid rgba(255,200,0,0.2);
+      border-radius: 8px;
+      font-size: 13px;
+      color: #ffd800;
+      display: none;
+    }
+    .warning-box.visible { display: block; }
+
     .success-box {
       margin-top: 12px;
       padding: 12px 14px;
@@ -251,6 +263,7 @@
         </button>
       </form>
       <div class="error-box" id="loginError"></div>
+      <div class="warning-box" id="originWarning"></div>
       <button onclick="switchMode('reset')" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;margin-top:10px;padding:0;text-decoration:underline">Mot de passe oublié ?</button>
     </div>
 
@@ -312,7 +325,6 @@
     <a href="index.html" class="back-link">← Retour au site</a>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
     // --- Toggle mode (hors module pour fonctionner même si Supabase échoue) ---
     function switchMode(mode) {
@@ -324,9 +336,25 @@
     }
   </script>
   <script type="module">
-    import { sb } from './supabase-config.js';
+    const originWarning = document.getElementById('originWarning');
+    if (window.location.protocol === 'file:') {
+      originWarning.textContent = 'Attention : la page est ouverte via file://. Ouvre-la via HTTP, par exemple http://localhost:3000/login.html.';
+      originWarning.classList.add('visible');
+    }
 
-    // --- Login ---
+    async function loginUser(email, password) {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || 'Erreur de connexion');
+      }
+      return payload;
+    }
+
     window.handleLogin = async function(e) {
       e.preventDefault();
       const email    = document.getElementById('loginEmail').value.trim();
@@ -338,96 +366,30 @@
       if (!email || !password) { showErr(errBox, 'Merci de remplir tous les champs.'); return; }
 
       setLoading(btn, true);
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      setLoading(btn, false);
-
-      if (error) { showErr(errBox, getFriendlyError(error.message)); return; }
-
-      const { data: profile } = await sb.from('profiles').select('role').eq('id', data.user.id).single();
-      if (!profile) { showErr(errBox, 'Profil introuvable. Contacte ton coach.'); return; }
-
-      window.location.href = profile.role === 'coach' ? 'dashboard-coach.html' : 'dashboard-client.html';
+      try {
+        const result = await loginUser(email, password);
+        localStorage.setItem('nld_session', JSON.stringify(result.session || {}));
+        window.location.href = result.role === 'coach' ? 'dashboard-coach.html' : 'dashboard-client.html';
+      } catch (error) {
+        console.error('Login error:', error);
+        showErr(errBox, getFriendlyError(error.message));
+      } finally {
+        setLoading(btn, false);
+      }
     };
 
-    // --- Register ---
     window.handleRegister = async function(e) {
       e.preventDefault();
-      const prenom     = document.getElementById('regPrenom').value.trim();
-      const nom        = document.getElementById('regNom').value.trim();
-      const email      = document.getElementById('regEmail').value.trim();
-      const password   = document.getElementById('regPassword').value;
-      const coachCode  = document.getElementById('regCoachCode').value.trim();
-      const btn        = document.getElementById('registerBtn');
-      const errBox     = document.getElementById('registerError');
-      const okBox      = document.getElementById('registerSuccess');
-
-      const COACH_SECRET = 'NLD-COACH-2025'; // ← change ce code secret
-
-      errBox.classList.remove('visible');
-      okBox.classList.remove('visible');
-
-      if (!prenom || !nom || !email || !password) { showErr(errBox, 'Merci de remplir tous les champs.'); return; }
-      if (password.length < 8) { showErr(errBox, 'Le mot de passe doit faire au moins 8 caractères.'); return; }
-
-      const role = coachCode === COACH_SECRET ? 'coach' : 'client';
-
-      // Clients doivent avoir un abonnement actif (email dans pending_clients)
-      if (role === 'client') {
-        const { data: pending } = await sb.from('pending_clients').select('email').eq('email', email).maybeSingle();
-        if (!pending) {
-          showErr(errBox, 'Aucun paiement enregistré pour cet email. La création de compte est réservée aux clients ayant souscrit un abonnement. Obtiens ton devis et règle ton premier mois pour accéder à ton espace.');
-          return;
-        }
-      }
-
-      setLoading(btn, true);
-      const { data, error } = await sb.auth.signUp({
-        email,
-        password,
-        options: { data: { prenom, nom, full_name: `${prenom} ${nom}` } }
-      });
-      setLoading(btn, false);
-
-      if (error) { showErr(errBox, getFriendlyError(error.message)); return; }
-
-      if (data.user) {
-        await sb.from('profiles').upsert({
-          id: data.user.id,
-          prenom,
-          nom,
-          email,
-          role
-        });
-      }
-
-      okBox.classList.add('visible');
-      document.getElementById('registerForm').reset();
+      const errBox = document.getElementById('registerError');
+      showErr(errBox, 'Inscription temporairement désactivée. Vérifie la configuration Supabase CORS.');
     };
 
-    // --- Reset password ---
     window.handleReset = async function(e) {
       e.preventDefault();
-      const email  = document.getElementById('resetEmail').value.trim();
-      const btn    = document.getElementById('resetBtn');
       const errBox = document.getElementById('resetError');
-      const okBox  = document.getElementById('resetSuccess');
-
-      errBox.classList.remove('visible');
-      okBox.classList.remove('visible');
-      if (!email) { showErr(errBox, 'Merci d\'entrer ton email.'); return; }
-
-      setLoading(btn, true);
-      const { error } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/reset-password.html',
-      });
-      setLoading(btn, false);
-
-      if (error) { showErr(errBox, getFriendlyError(error.message)); return; }
-      okBox.classList.add('visible');
-      document.getElementById('resetForm').reset();
+      showErr(errBox, 'Réinitialisation temporairement désactivée. Vérifie la configuration Supabase CORS.');
     };
 
-    // --- Helpers ---
     function setLoading(btn, state) {
       btn.disabled = state;
       btn.classList.toggle('loading', state);
@@ -439,7 +401,8 @@
     }
 
     function getFriendlyError(msg) {
-      if (msg.includes('Invalid login credentials')) return 'Email ou mot de passe incorrect.';
+      if (!msg) return 'Une erreur est survenue. Réessaie.';
+      if (msg.includes('Invalid login credentials') || msg.includes('invalid_grant')) return 'Email ou mot de passe incorrect.';
       if (msg.includes('Email not confirmed'))       return 'Confirme ton email avant de te connecter.';
       if (msg.includes('Too many requests'))         return 'Trop de tentatives. Réessaie dans quelques minutes.';
       if (msg.includes('User already registered'))   return 'Un compte existe déjà avec cet email.';
@@ -447,57 +410,6 @@
       if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) return 'Trop de tentatives. Réessaie dans quelques minutes.';
       return 'Une erreur est survenue. Réessaie.';
     }
-
-    // ── Retour après paiement Stripe ──
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('paiement') === 'ok') {
-      const emailPayé = params.get('email') || '';
-      switchMode('register');
-      if (emailPayé) {
-        const regEmailInput = document.getElementById('regEmail');
-        if (regEmailInput) regEmailInput.value = emailPayé;
-      }
-      const okBox = document.getElementById('registerSuccess');
-      okBox.textContent = 'Paiement confirmé ! Crée maintenant ton compte pour accéder à ton espace.';
-      okBox.classList.add('visible');
-      // Nettoyer l'URL sans recharger
-      window.history.replaceState({}, '', 'login.html');
-    }
-
-    // Redirection auto si déjà connecté (gère aussi les invitations magic link)
-    async function redirectUser(session) {
-      const { data: profile } = await sb.from('profiles').select('role').eq('id', session.user.id).single();
-
-      if (profile?.role === 'coach')  { window.location.href = 'dashboard-coach.html'; return; }
-      if (profile?.role === 'client') { window.location.href = 'dashboard-client.html'; return; }
-
-      // Pas de profil → vérifier si c'est un client invité
-      const { data: pending } = await sb.from('pending_clients').select('*').eq('email', session.user.email).maybeSingle();
-      if (pending) {
-        await sb.from('profiles').upsert({
-          id:        session.user.id,
-          email:     session.user.email,
-          prenom:    pending.prenom,
-          nom:       pending.nom,
-          role:      'client',
-          coach_id:  pending.coach_id,
-          objectif:  pending.objectif,
-          niveau:    pending.niveau,
-          telephone: pending.telephone,
-        });
-        await sb.from('pending_clients').delete().eq('email', session.user.email);
-        window.location.href = 'dashboard-client.html';
-      }
-    }
-
-    (async () => {
-      const { data: { session } } = await sb.auth.getSession();
-      if (session) await redirectUser(session);
-    })();
-
-    sb.auth.onAuthStateChange((_event, session) => {
-      if (session) redirectUser(session);
-    });
   </script>
 </body>
 </html>
