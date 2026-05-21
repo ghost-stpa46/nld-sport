@@ -335,10 +335,7 @@
       document.getElementById('btnRegister').classList.toggle('active', mode === 'register');
     }
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script type="module">
-    import { sb } from './supabase-config.js';
-
     const originWarning = document.getElementById('originWarning');
     if (window.location.protocol === 'file:') {
       originWarning.textContent = 'Attention : la page est ouverte via file://. Ouvre-la via HTTP, par exemple http://localhost:3000/login.html.';
@@ -351,26 +348,10 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      const text = await response.text();
-      let payload = null;
-      try {
-        payload = JSON.parse(text);
-      } catch (err) {
-        if (!response.ok) {
-          throw new Error(`Login API error ${response.status}: ${text}`);
-        }
-        throw new Error(`Réponse invalide du serveur : ${text}`);
-      }
+      const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.error || `Erreur de connexion (${response.status})`);
+        throw new Error(payload.error || 'Erreur de connexion');
       }
-      if (!payload?.session?.access_token) {
-        throw new Error('Réponse de connexion invalide.');
-      }
-      await sb.auth.setSession({
-        access_token: payload.session.access_token,
-        refresh_token: payload.session.refresh_token,
-      });
       return payload;
     }
 
@@ -388,6 +369,12 @@
       try {
         const result = await loginUser(email, password);
         localStorage.setItem('nld_session', JSON.stringify(result.session || {}));
+        if (result.session?.access_token && result.session?.refresh_token) {
+          await sb.auth.setSession({
+            access_token: result.session.access_token,
+            refresh_token: result.session.refresh_token
+          });
+        }
         setTimeout(() => {
           window.location.href = result.role === 'coach' ? 'dashboard-coach.html' : 'dashboard-client.html';
         }, 100);
