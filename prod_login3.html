@@ -364,13 +364,6 @@
       if (!response.ok) {
         throw new Error(payload.error || `Erreur de connexion (${response.status})`);
       }
-      if (!payload?.session?.access_token) {
-        throw new Error('Réponse de connexion invalide.');
-      }
-      await sb.auth.setSession({
-        access_token: payload.session.access_token,
-        refresh_token: payload.session.refresh_token,
-      });
       return payload;
     }
 
@@ -388,6 +381,9 @@
       try {
         const result = await loginUser(email, password);
         localStorage.setItem('nld_session', JSON.stringify(result.session || {}));
+        
+        // Configure la session Supabase avec les tokens reçus de l'API
+        // Cela permet au dashboard de vérifier la session correctement
         if (result.session?.access_token && result.session?.refresh_token) {
           await sb.auth.setSession({
             access_token: result.session.access_token,
@@ -397,6 +393,8 @@
           const { data: { session: verifiedSession } } = await sb.auth.getSession();
           console.debug('Verified session', verifiedSession);
         }
+        
+        // Redirection après configuration de la session
         await new Promise(resolve => setTimeout(resolve, 300));
         window.location.href = result.role === 'coach' ? 'dashboard-coach.html' : 'dashboard-client.html';
       } catch (error) {
@@ -501,7 +499,7 @@
       if (msg.includes('User already registered'))   return 'Un compte existe déjà avec cet email.';
       if (msg.includes('Password should be'))        return 'Le mot de passe doit faire au moins 8 caractères.';
       if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) return 'Trop de tentatives. Réessaie dans quelques minutes.';
-      return 'Une erreur est survenue. Réessaie.';
+      return msg;
     }
   </script>
 </body>

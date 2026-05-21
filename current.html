@@ -343,7 +343,7 @@
     }
 
     async function loginUser(email, password) {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -374,10 +374,12 @@
             access_token: result.session.access_token,
             refresh_token: result.session.refresh_token
           });
+          console.debug('Supabase session set, verifying...');
+          const { data: { session: verifiedSession } } = await sb.auth.getSession();
+          console.debug('Verified session', verifiedSession);
         }
-        setTimeout(() => {
-          window.location.href = result.role === 'coach' ? 'dashboard-coach.html' : 'dashboard-client.html';
-        }, 100);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        window.location.href = result.role === 'coach' ? 'dashboard-coach.html' : 'dashboard-client.html';
       } catch (error) {
         console.error('Login error:', error);
         showErr(errBox, getFriendlyError(error.message));
