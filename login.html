@@ -351,9 +351,18 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      const payload = await response.json();
+      const text = await response.text();
+      let payload = null;
+      try {
+        payload = JSON.parse(text);
+      } catch (err) {
+        if (!response.ok) {
+          throw new Error(`Login API error ${response.status}: ${text}`);
+        }
+        throw new Error(`Réponse invalide du serveur : ${text}`);
+      }
       if (!response.ok) {
-        throw new Error(payload.error || 'Erreur de connexion');
+        throw new Error(payload.error || `Erreur de connexion (${response.status})`);
       }
       return payload;
     }
