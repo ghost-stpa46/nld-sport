@@ -41,49 +41,22 @@ export default async function handler(req, res) {
   const tokenUrl = `${SUPABASE_URL.replace(/\/+$/, '')}/auth/v1/token?grant_type=password`;
 
   try {
-    const formBody = new URLSearchParams({ email, password, grant_type: 'password' }).toString();
-    console.debug('Supabase token request', { url: tokenUrl, email, formBodyLength: formBody.length });
+    const jsonBody = JSON.stringify({ email, password, grant_type: 'password' });
+    console.debug('Supabase token request', { url: tokenUrl, email, jsonBodyLength: jsonBody.length });
 
-    let response = await fetch(tokenUrl, {
+    const response = await fetch(tokenUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
         apikey: authKey,
         Authorization: `Bearer ${authKey}`,
       },
-      body: formBody,
+      body: jsonBody,
     });
 
-    let data = await response.json();
+    const data = await response.json();
     if (!response.ok) {
       console.error('Supabase login proxy response error:', { status: response.status, data });
-      // If Supabase complains about bad_json, retry once using JSON body to help diagnose CORS/proxy body handling issues
-      if (data?.error_code === 'bad_json') {
-        try {
-          const jsonBody = JSON.stringify({ email, password, grant_type: 'password' });
-          console.debug('Retrying Supabase token request with JSON body', { url: tokenUrl, email, jsonBodyLength: jsonBody.length });
-          const retryResp = await fetch(tokenUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              apikey: authKey,
-              Authorization: `Bearer ${authKey}`,
-            },
-            body: jsonBody,
-          });
-          const retryData = await retryResp.json();
-          console.error('Supabase retry response', { status: retryResp.status, retryData });
-          if (retryResp.ok) {
-            data = retryData;
-            response = retryResp;
-          } else {
-            return res.status(retryResp.status).json({ error: retryData?.error_description || retryData?.error || retryData?.message || 'Email ou mot de passe incorrect.' });
-          }
-        } catch (retryErr) {
-          console.error('Supabase retry error:', retryErr);
-          return res.status(502).json({ error: 'Erreur lors de la communication avec Supabase.' });
-        }
-      }
       const errorMessage = data?.error_description || data?.error || data?.message || 'Email ou mot de passe incorrect.';
       return res.status(response.status).json({ error: errorMessage });
     }
