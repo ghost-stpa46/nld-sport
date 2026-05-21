@@ -335,6 +335,7 @@
       document.getElementById('btnRegister').classList.toggle('active', mode === 'register');
     }
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script type="module">
     import { sb } from './supabase-config.js';
 
@@ -423,7 +424,7 @@
       if (msg.includes('User already registered'))   return 'Un compte existe déjà avec cet email.';
       if (msg.includes('Password should be'))        return 'Le mot de passe doit faire au moins 8 caractères.';
       if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) return 'Trop de tentatives. Réessaie dans quelques minutes.';
-      return 'Une erreur est survenue. Réessaie.';
+      return msg;
     }
   </script>
 </body>
