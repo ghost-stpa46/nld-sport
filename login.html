@@ -362,7 +362,8 @@
         throw new Error(`Réponse invalide du serveur : ${text}`);
       }
       if (!response.ok) {
-        throw new Error(payload.error || `Erreur de connexion (${response.status})`);
+        const err = payload?.error || payload?.error_description || payload?.message || JSON.stringify(payload) || `Erreur de connexion (${response.status})`;
+        throw new Error(err);
       }
       return payload;
     }
@@ -427,12 +428,11 @@
 
     function getFriendlyError(msg) {
       if (!msg) return 'Une erreur est survenue. Réessaie.';
-      if (msg.includes('Invalid login credentials') || msg.includes('invalid_grant')) return 'Email ou mot de passe incorrect.';
+      if (msg.includes('Email ou mot de passe incorrect') || msg.includes('Invalid login credentials') || msg.includes('invalid_grant')) return 'Email ou mot de passe incorrect.';
       if (msg.includes('Email not confirmed'))       return 'Confirme ton email avant de te connecter.';
-      if (msg.includes('Too many requests'))         return 'Trop de tentatives. Réessaie dans quelques minutes.';
+      if (msg.includes('Too many requests') || msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) return 'Trop de tentatives. Réessaie dans quelques minutes.';
       if (msg.includes('User already registered'))   return 'Un compte existe déjà avec cet email.';
       if (msg.includes('Password should be'))        return 'Le mot de passe doit faire au moins 8 caractères.';
-      if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) return 'Trop de tentatives. Réessaie dans quelques minutes.';
       return msg;
     }
   </script>

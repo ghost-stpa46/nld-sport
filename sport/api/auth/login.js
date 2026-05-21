@@ -49,8 +49,7 @@ export default async function handler(req, res) {
 
     const data = await response.json();
     if (!response.ok) {
-      console.error('Supabase login proxy response error:', { status: response.status, data });
-      const errorMessage = data?.error_description || data?.error || data?.message || 'Email ou mot de passe incorrect.';
+      const errorMessage = data?.error_description || data?.error || 'Email ou mot de passe incorrect.';
       return res.status(response.status).json({ error: errorMessage });
     }
 
