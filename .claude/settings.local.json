@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pkill -f \"next dev\")",
+      "Bash(rm -f /mnt/c/Users/floei/new-startup/.next/dev/lock)",
+      "Bash(npx prisma:*)",
+      "Bash(TURSO_DATABASE_URL=\"\" npx prisma migrate dev --name \"add_onboarded_notifications\")",
+      "Bash(TURSO_DATABASE_URL=\"\" npx prisma migrate reset --force)",
+      "Bash(TURSO_DATABASE_URL=\"\" PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"oui\" npx prisma migrate reset --force)",
+      "Bash(node scripts/seed.mjs)",
+      "Bash(curl:*)",
+      "Bash(cat /mnt/c/Users/floei/new-startup/src/app/startups/[id]/page.tsx)",
+      "Bash(wc -l grep -n \"founders\\\\|contactEmail\\\\|linkedin\\\\|techStack\\\\|pressArticles\\\\|getPlanFeatures\\\\|plan\" /mnt/c/Users/floei/new-startup/src/app/startups/[id]/page.tsx)",
+      "Bash(TURSO_DATABASE_URL=\"\" npx prisma migrate dev --name \"add_password_reset\")",
+      "Bash(npm install:*)",
+      "Bash(python3 -c \"import sys,json; json.load\\(sys.stdin\\); print\\(''''JSON OK''''\\)\")",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"fix: lazy init Resend client to avoid build-time crash:*)",
+      "Bash(git push:*)",
+      "Bash(git commit -m \"chore: add ADMIN_SECRET to env:*)",
+      "Bash(git commit -m \"fix: show real error message on stripe failure:*)",
+      "Bash(explorer.exe index.html)",
+      "Bash(cmd.exe /c start index.html)",
+      "Bash(cmd.exe /c start \"\" \"/mnt/c/Users/floei/sport/index.html\")",
+      "Bash(python3:*)",
+      "Bash(ls:*)",
+      "Bash(git commit:*)",
+      "Bash(pkill -f \"python3 -m http.server\")",
+      "Bash(npx serve:*)",
+      "Bash(supabase functions:*)",
+      "Bash(git remote:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git rm:*)",
+      "Bash(grep:*)",
+      "Bash(supabase secrets:*)"
+    ]
+  }
+}
