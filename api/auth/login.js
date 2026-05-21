@@ -23,10 +23,13 @@ export default async function handler(req, res) {
   const body = req.body && Object.keys(req.body).length ? req.body : undefined;
   const payload = body || (await parseJsonBody(req));
   console.debug('Proxy incoming request', { headers: req.headers?.['content-type'] || req.headers, bodyPreview: body ? JSON.stringify(body).slice(0,200) : undefined });
-  const email = payload?.email?.toString().trim();
-  const password = payload?.password?.toString();
+  const rawEmail = payload?.email;
+  const rawPassword = payload?.password;
+  const email = typeof rawEmail === 'string' ? rawEmail.trim() : (rawEmail ? String(rawEmail).trim() : '');
+  const password = typeof rawPassword === 'string' ? rawPassword : (rawPassword ? String(rawPassword) : '');
 
   if (!email || !password) {
+    console.debug('Missing credentials after normalization', { rawEmail, rawPassword, email, password });
     return res.status(400).json({ error: 'Email et mot de passe requis.' });
   }
 
