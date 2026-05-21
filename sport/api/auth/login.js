@@ -22,6 +22,7 @@ export default async function handler(req, res) {
 
   const body = req.body && Object.keys(req.body).length ? req.body : undefined;
   const payload = body || (await parseJsonBody(req));
+  console.debug('Proxy incoming request', { headers: req.headers?.['content-type'] || req.headers, bodyPreview: body ? JSON.stringify(body).slice(0,200) : undefined });
   const email = payload?.email?.toString().trim();
   const password = payload?.password?.toString();
 
@@ -37,19 +38,49 @@ export default async function handler(req, res) {
   const tokenUrl = `${SUPABASE_URL.replace(/\/+$/, '')}/auth/v1/token?grant_type=password`;
 
   try {
-    const response = await fetch(tokenUrl, {
+    const formBody = new URLSearchParams({ email, password, grant_type: 'password' }).toString();
+    console.debug('Supabase token request', { url: tokenUrl, email, formBodyLength: formBody.length });
+
+    let response = await fetch(tokenUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         apikey: authKey,
         Authorization: `Bearer ${authKey}`,
       },
-      body: new URLSearchParams({ email, password, grant_type: 'password' }).toString(),
+      body: formBody,
     });
 
-    const data = await response.json();
+    let data = await response.json();
     if (!response.ok) {
-      const errorMessage = data?.error_description || data?.error || 'Email ou mot de passe incorrect.';
+      console.error('Supabase login proxy response error:', { status: response.status, data });
+      if (data?.error_code === 'bad_json') {
+        try {
+          const jsonBody = JSON.stringify({ email, password, grant_type: 'password' });
+          console.debug('Retrying Supabase token request with JSON body', { url: tokenUrl, email, jsonBodyLength: jsonBody.length });
+          const retryResp = await fetch(tokenUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: authKey,
+              Authorization: `Bearer ${authKey}`,
+            },
+            body: jsonBody,
+          });
+          const retryData = await retryResp.json();
+          console.error('Supabase retry response', { status: retryResp.status, retryData });
+          if (retryResp.ok) {
+            data = retryData;
+            response = retryResp;
+          } else {
+            return res.status(retryResp.status).json({ error: retryData?.error_description || retryData?.error || retryData?.message || 'Email ou mot de passe incorrect.' });
+          }
+        } catch (retryErr) {
+          console.error('Supabase retry error:', retryErr);
+          return res.status(502).json({ error: 'Erreur lors de la communication avec Supabase.' });
+        }
+      }
+      const errorMessage = data?.error_description || data?.error || data?.message || 'Email ou mot de passe incorrect.';
       return res.status(response.status).json({ error: errorMessage });
     }
 
@@ -75,6 +106,7 @@ async function parseJsonBody(req) {
     let body = '';
     req.on('data', (chunk) => { body += chunk; });
     req.on('end', () => {
+      console.debug('parseJsonBody raw body length', body.length, 'preview', body.slice(0,200));
       try {
         resolve(JSON.parse(body || '{}'));
       } catch (error) {
