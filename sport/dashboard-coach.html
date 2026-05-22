@@ -804,19 +804,12 @@ let weightChart    = null;
 // ────────────────────────────────────────────────────────────
 async function requireCoach() {
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) {
-    console.error('Auth guard: no session, redirecting to login');
-    alert('Session invalide ou expirée. Merci de te reconnecter.');
-    window.location.href = 'login.html';
-    return false;
-  }
+  if (!session) { window.location.href = 'login.html'; return false; }
 
   const { data: profile } = await sb
     .from('profiles').select('*').eq('id', session.user.id).single();
 
   if (!profile || profile.role !== 'coach') {
-    console.error('Auth guard: profile invalid', { profile });
-    alert('Impossible de charger ton profil. Retour à la page de connexion.');
     window.location.href = 'login.html';
     return false;
   }

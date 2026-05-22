@@ -1,3 +1,12 @@
 {
-  "outputDirectory": "."
+  "buildCommand": null,
+  "devCommand": null,
+  "installCommand": null,
+  "framework": null,
+  "outputDirectory": "sport",
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "@vercel/node@2.0.0"
+    }
+  }
 }

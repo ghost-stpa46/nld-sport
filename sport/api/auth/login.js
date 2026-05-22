@@ -1,95 +1,111 @@
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://wzaoqjlkbtemkudgoyxn.supabase.co';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6YW9xamxrYnRlbWt1ZGdveXhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNTA2MDQsImV4cCI6MjA5MDgyNjYwNH0.RvWNdjauVLsEVNu-4AnK7Oflq8U97Y44YEz8SO1ccL0';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
 
-function getAuthKey() {
-  if (SUPABASE_SERVICE_ROLE_KEY) return SUPABASE_SERVICE_ROLE_KEY;
-  if (SUPABASE_ANON_KEY) return SUPABASE_ANON_KEY;
-  return '';
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error('Environment variables SUPABASE_URL and SUPABASE_ANON_KEY are required');
+}
+if (!SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn('Missing SUPABASE_SERVICE_ROLE_KEY; profile fetch may fail');
 }
 
-function determineRole(user) {
-  if (!user) return 'client';
-  const role = user?.app_metadata?.role || user?.user_metadata?.role || user?.user_metadata?.accountType;
-  return role === 'coach' ? 'coach' : 'client';
-}
+const buildAnonHeaders = () => ({
+  'Content-Type': 'application/json',
+  apikey: SUPABASE_ANON_KEY,
+  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+});
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
-    return res.status(405).json({ error: 'Méthode non autorisée' });
-  }
+const buildServiceHeaders = () => ({
+  'Content-Type': 'application/json',
+  apikey: SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY,
+  Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY}`,
+});
 
-  const body = req.body && Object.keys(req.body).length ? req.body : undefined;
-  const payload = body || (await parseJsonBody(req));
-  console.debug('Proxy incoming request', { headers: req.headers?.['content-type'] || req.headers, bodyPreview: body ? JSON.stringify(body).slice(0,200) : undefined });
-  const rawEmail = payload?.email;
-  const rawPassword = payload?.password;
-  const email = typeof rawEmail === 'string' ? rawEmail.trim() : (rawEmail ? String(rawEmail).trim() : '');
-  const password = typeof rawPassword === 'string' ? rawPassword : (rawPassword ? String(rawPassword) : '');
-
-  if (!email || !password) {
-    console.debug('Missing credentials after normalization', { rawEmail, rawPassword, email, password });
-    return res.status(400).json({ error: 'Email et mot de passe requis.' });
-  }
-
-  const authKey = getAuthKey();
-  if (!SUPABASE_URL || !authKey) {
-    return res.status(500).json({ error: 'Configuration Supabase manquante.' });
-  }
-
-  const tokenUrl = `${SUPABASE_URL.replace(/\/+$/, '')}/auth/v1/token?grant_type=password`;
-
-  try {
-    const jsonBody = JSON.stringify({ email, password, grant_type: 'password' });
-    console.debug('Supabase token request', { url: tokenUrl, email, jsonBodyLength: jsonBody.length });
-
-    const response = await fetch(tokenUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: authKey,
-        Authorization: `Bearer ${authKey}`,
-      },
-      body: jsonBody,
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      console.error('Supabase login proxy response error:', { status: response.status, data });
-      const errorMessage = data?.error_description || data?.error || data?.message || 'Email ou mot de passe incorrect.';
-      return res.status(response.status).json({ error: errorMessage });
-    }
-
-    const role = determineRole(data.user);
-    return res.status(200).json({
-      session: {
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-        expires_in: data.expires_in,
-        token_type: data.token_type,
-      },
-      user: data.user,
-      role,
-    });
-  } catch (error) {
-    console.error('Supabase login proxy error:', error);
-    return res.status(500).json({ error: 'Erreur interne. Réessaie plus tard.' });
-  }
-}
-
-async function parseJsonBody(req) {
-  return new Promise((resolve) => {
+const parseBody = async (req) => {
+  if (req.body) return req.body;
+  return new Promise((resolve, reject) => {
     let body = '';
     req.on('data', (chunk) => { body += chunk; });
     req.on('end', () => {
-      console.debug('parseJsonBody raw body length', body.length, 'preview', body.slice(0,200));
       try {
-        resolve(JSON.parse(body || '{}'));
+        resolve(body ? JSON.parse(body) : {});
       } catch (error) {
-        resolve({});
+        reject(error);
       }
     });
-    req.on('error', () => resolve({}));
+    req.on('error', reject);
   });
+};
+
+const jsonResponse = (res, status, payload) => {
+  res.statusCode = status;
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify(payload));
+};
+
+async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return jsonResponse(res, 405, { error: 'Method not allowed' });
+  }
+
+  let body;
+  try {
+    body = await parseBody(req);
+  } catch (error) {
+    return jsonResponse(res, 400, { error: 'Impossible de lire la requête JSON.' });
+  }
+
+  const { email, password } = body || {};
+  if (!email || !password) {
+    return jsonResponse(res, 400, { error: 'Email et mot de passe requis.' });
+  }
+
+  try {
+    console.log('Auth login proxy config', {
+      supabaseUrl: SUPABASE_URL,
+      hasAnonKey: Boolean(SUPABASE_ANON_KEY),
+      hasServiceRoleKey: Boolean(SUPABASE_SERVICE_ROLE_KEY),
+    });
+
+    const authRes = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: buildAnonHeaders(),
+      body: JSON.stringify({ email, password }),
+    });
+    const authJson = await authRes.json();
+    if (!authRes.ok || authJson.error) {
+      const errorMessage = authJson.error_description || authJson.error || authJson.message || 'Email ou mot de passe incorrect.';
+      return jsonResponse(res, 401, { error: errorMessage });
+    }
+
+    const userId = authJson.user?.id;
+    if (!userId) {
+      return jsonResponse(res, 500, { error: 'Impossible de récupérer l’utilisateur.' });
+    }
+
+    const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?select=role&id=eq.${encodeURIComponent(userId)}`, {
+      headers: buildServiceHeaders(),
+    });
+    if (!profileRes.ok) {
+      const profileText = await profileRes.text();
+      console.error('Supabase profile fetch failed', profileRes.status, profileText);
+      return jsonResponse(res, 500, { error: 'Impossible de lire le profil utilisateur.' });
+    }
+    const profileJson = await profileRes.json();
+    const profile = Array.isArray(profileJson) ? profileJson[0] : profileJson;
+    if (!profile || !profile.role) {
+      return jsonResponse(res, 404, { error: 'Profil introuvable. Contacte ton coach.' });
+    }
+
+    return jsonResponse(res, 200, {
+      role: profile.role,
+      session: authJson,
+      user: { id: userId, email },
+    });
+  } catch (error) {
+    console.error('Auth login proxy error:', error);
+    return jsonResponse(res, 500, { error: 'Erreur serveur. Réessaie plus tard.' });
+  }
 }
+
+module.exports = handler;
