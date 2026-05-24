@@ -462,12 +462,20 @@
           <div class="field-group">
             <label>Forfait</label>
             <div class="forfait-options">
-              <div class="forfait-option selected" id="forfaitMensuel">
+              <div class="forfait-option selected" id="forfaitMensuel" onclick="selectForfait('mensuel')">
                 <div class="forfait-info">
                   <span class="forfait-name">Forfait mensuel</span>
                   <span class="forfait-desc">2 séances/semaine · suivi nutrition · accompagnement mental · soit 15€ la séance</span>
                 </div>
                 <span class="forfait-price">120€<small>/mois</small></span>
+              </div>
+
+              <div class="forfait-option" id="forfaitSeance" onclick="selectForfait('seance')">
+                <div class="forfait-info">
+                  <span class="forfait-name">Séance à l'unité</span>
+                  <span class="forfait-desc">Séance unique · idéal pour tester · 30€ la séance</span>
+                </div>
+                <span class="forfait-price">30€</span>
               </div>
             </div>
           </div>

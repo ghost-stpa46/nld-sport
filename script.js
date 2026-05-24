@@ -50,6 +50,7 @@ function handleTrialSubmit(e) {
 // ============================================================
 
 let currentForfait = 'mensuel';
+let devisMontant = 120; // montant courant utilisé pour paiement / virement
 let devisNumero = '';
 let devisData = {};
 
@@ -70,7 +71,17 @@ function closeDevisFromOverlay(e) {
 }
 
 function selectForfait(type) {
-  currentForfait = 'mensuel';
+  // type: 'mensuel' | 'seance'
+  currentForfait = type;
+  // update UI selection
+  document.querySelectorAll('.forfait-option').forEach(el => el.classList.remove('selected'));
+  if (type === 'mensuel') {
+    document.getElementById('forfaitMensuel')?.classList.add('selected');
+    devisMontant = 120;
+  } else if (type === 'seance') {
+    document.getElementById('forfaitSeance')?.classList.add('selected');
+    devisMontant = 30;
+  }
 }
 
 function showStep(stepId) {
@@ -134,10 +145,18 @@ function goToStep3() {
   document.getElementById('paymentDesc').textContent =
     `Devis n° ${devisNumero} · ${devisData.prenom} ${devisData.nom}`;
 
-  document.getElementById('paymentRecap').innerHTML = `
-    <p>Forfait mensuel · soit 15€ la séance</p>
-    <strong>120€<small style="font-family:var(--font-body);font-size:13px;color:var(--text-muted)">/mois</small></strong>
-  `;
+  // Affiche le récapitulatif selon le forfait sélectionné
+  if (currentForfait === 'seance') {
+    document.getElementById('paymentRecap').innerHTML = `
+      <p>Séance à l'unité · 30€ la séance</p>
+      <strong>30€</strong>
+    `;
+  } else {
+    document.getElementById('paymentRecap').innerHTML = `
+      <p>Forfait mensuel · soit 15€ la séance</p>
+      <strong>120€<small style="font-family:var(--font-body);font-size:13px;color:var(--text-muted)">/mois</small></strong>
+    `;
+  }
 
   document.getElementById('refVirement').textContent = devisNumero;
   document.getElementById('paymentSuccess').classList.remove('visible');
@@ -161,9 +180,9 @@ async function handleStripeClick() {
         prenom:      devisData.prenom,
         nom:         devisData.nom,
         email:       devisData.email,
-        titre:       `Forfait mensuel NLD — ${devisData.objectif}`,
-        montant:     120,
-        description: `Coaching personnalisé · Niveau ${devisData.niveau}`,
+        titre:       `${currentForfait === 'seance' ? 'Séance à l\'unité NLD' : 'Forfait mensuel NLD'} — ${devisData.objectif}`,
+        montant:     devisMontant,
+        description: `${currentForfait === 'seance' ? 'Séance unique / session' : 'Coaching personnalisé · Niveau ' + devisData.niveau}`,
       }),
     });
 
@@ -195,7 +214,7 @@ async function confirmVirement() {
         tel:       devisData.tel || '',
         objectif:  devisData.objectif,
         niveau:    devisData.niveau,
-        montant:   120,
+        montant:   devisMontant,
         reference: devisNumero,
       }),
     });
@@ -222,13 +241,30 @@ function buildDevisDoc() {
   const validite = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
     .toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
 
-  const items = [
-    { text: '2 séances d\'entraînement personnalisées / semaine', hl: false },
-    { text: 'Plan alimentaire adapté à tes objectifs',            hl: false },
-    { text: 'Accompagnement mental & suivi de progression',       hl: false },
-    { text: 'Accès direct — réponses rapides',                    hl: false },
-    { text: 'Soit 15 € la séance',                                hl: true  },
-  ];
+  let items = [];
+  let prestationTitle = '';
+  let pu = '';
+  let totalDisplay = '';
+
+  if (currentForfait === 'seance') {
+    prestationTitle = "Séance à l'unité";
+    items = [
+      { text: "Séance individuelle — 1 session", hl: true }
+    ];
+    pu = '30,00 €';
+    totalDisplay = '30,00 €';
+  } else {
+    prestationTitle = 'Forfait coaching mensuel';
+    items = [
+      { text: '2 séances d\'entraînement personnalisées / semaine', hl: false },
+      { text: 'Plan alimentaire adapté à tes objectifs',            hl: false },
+      { text: 'Accompagnement mental & suivi de progression',       hl: false },
+      { text: 'Accès direct — réponses rapides',                    hl: false },
+      { text: 'Soit 15 € la séance',                                hl: true  },
+    ];
+    pu = '120,00 €';
+    totalDisplay = '120,00 €';
+  }
 
   document.getElementById('devisDoc').innerHTML = `
     <div class="doc-inner">
@@ -277,14 +313,14 @@ function buildDevisDoc() {
           </div>
           <div class="doc-row">
             <div class="doc-cell">
-              <div class="doc-cell-name">Forfait coaching mensuel</div>
+              <div class="doc-cell-name">${prestationTitle}</div>
               <div class="doc-cell-items">
                 ${items.map(i => `<span class="doc-cell-item${i.hl ? ' hl' : ''}">${i.text}</span>`).join('')}
               </div>
             </div>
             <div class="doc-cell">1</div>
-            <div class="doc-cell">120,00 €</div>
-            <div class="doc-cell doc-cell-price">120,00 €<span class="doc-cell-unit">/ mois</span></div>
+            <div class="doc-cell">${pu}</div>
+            <div class="doc-cell doc-cell-price">${totalDisplay}${currentForfait === 'mensuel' ? '<span class="doc-cell-unit">/ mois</span>' : ''}</div>
           </div>
         </div>
 
@@ -295,8 +331,8 @@ function buildDevisDoc() {
             <span class="doc-total-note-text">Ce qui te manque, c'est pas l'envie. C'est la discipline.</span>
           </div>
           <div class="doc-total-amount-block">
-            <span class="doc-total-label">Total / mois</span>
-            <span class="doc-total-amount">120,00 €</span>
+            <span class="doc-total-label">${currentForfait === 'seance' ? 'Total' : 'Total / mois'}</span>
+            <span class="doc-total-amount">${totalDisplay}</span>
           </div>
         </div>
 
