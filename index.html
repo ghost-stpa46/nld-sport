@@ -4,8 +4,8 @@
   <link rel="icon" href="data:,">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>noLackinDiscipline — Coaching sportif personnel</title>
-  <meta name="description" content="Coaching sportif personnel sur mesure — 2 séances/semaine, suivi nutrition et accompagnement mental. Réserve ta place." />
+  <title>nld-sport — Coaching sportif personnel</title>
+  <meta name="description" content="Coaching sportif personnel sur mesure — séance d'essai à 30€, suivi nutrition et accompagnement mental. Réserve ta place." />
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -13,14 +13,14 @@
   <!-- Open Graph (WhatsApp, Facebook, LinkedIn) -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://nld-sport.vercel.app/" />
-  <meta property="og:title" content="noLackinDiscipline — Coaching sportif personnel" />
-  <meta property="og:description" content="Coaching sportif personnel sur mesure — 2 séances/semaine, suivi nutrition et accompagnement mental. Réserve ta place." />
+  <meta property="og:title" content="nld-sport — Coaching sportif personnel" />
+  <meta property="og:description" content="Coaching sportif personnel sur mesure — séance d'essai à 30€, suivi nutrition et accompagnement mental. Réserve ta place." />
   <meta property="og:image" content="https://nld-sport.vercel.app/og-image.svg" />
 
   <!-- Twitter/X -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="noLackinDiscipline — Coaching sportif personnel" />
-  <meta name="twitter:description" content="Coaching sportif personnel sur mesure — 2 séances/semaine, suivi nutrition et accompagnement mental. Réserve ta place." />
+  <meta name="twitter:title" content="nld-sport — Coaching sportif personnel" />
+  <meta name="twitter:description" content="Coaching sportif personnel sur mesure — séance d'essai à 30€, suivi nutrition et accompagnement mental. Réserve ta place." />
   <meta name="twitter:image" content="https://nld-sport.vercel.app/og-image.svg" />
 
   <link rel="stylesheet" href="style.css" />
@@ -32,8 +32,9 @@
   <!-- NAV -->
   <nav>
     <div class="nav-inner">
-      <span class="logo">NLD</span>
+      <span class="logo">nld-sport</span>
       <div class="nav-links">
+        <a href="#trial" class="nav-cta">Séance d'essai</a>
         <a href="#contact" class="nav-cta">Questions</a>
         <a href="login.html" class="nav-cta">Connexion</a>
         <button class="nav-cta nav-devis" onclick="openDevis()">Devis gratuit</button>
@@ -51,7 +52,7 @@
       <div class="grid-overlay"></div>
     </div>
     <div class="hero-content">
-      <p class="hero-label">noLackinDiscipline</p>
+      <p class="hero-label">nld-sport</p>
       <h1 class="hero-title">
         Ce qui te manque,<br />
         c'est pas l'envie.<br />
@@ -237,7 +238,15 @@
               <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
               Soit <strong style="color:var(--accent)">15€ la séance</strong>
             </li>
+            <li>
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              Option séance à l'unité : <strong style="color:var(--accent)">30€ la séance</strong>
+            </li>
           </ul>
+          <div class="trial-cta">
+            <p class="trial-note">Tu préfères une séance d'essai unique ?</p>
+            <a href="#trial" class="btn-devis-outline">Séance d'essai 30€</a>
+          </div>
           <div class="prix-btns">
             <button class="btn-primary btn-large" onclick="openDevis()">Obtenir mon devis</button>
             <a href="#contact" class="btn-devis-outline">Poser une question</a>
@@ -245,6 +254,30 @@
           <p class="prix-note">Places limitées — je travaille avec peu de monde pour travailler bien.</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- SÉANCE D'ESSAI -->
+  <section class="trial" id="trial">
+    <div class="container">
+      <p class="section-label">Séance d'essai</p>
+      <h2 class="section-title">Réserve ta séance d'essai à 30€</h2>
+      <p class="trial-desc">Une seule séance, sans engagement. Remplis tes coordonnées ci-dessous pour envoyer ta demande directement à l'email du site et recevoir un rappel.</p>
+
+      <form class="contact-form trial-form" onsubmit="handleTrialSubmit(event)">
+        <div class="form-row">
+          <input type="text" name="trialFirstname" placeholder="Ton prénom" required />
+          <input type="text" name="trialLastname" placeholder="Ton nom" required />
+        </div>
+        <div class="form-row">
+          <input type="email" name="trialEmail" placeholder="Ton email" required />
+          <input type="tel" name="trialPhone" placeholder="Ton numéro" required />
+        </div>
+        <input type="text" name="trialAddress" placeholder="Ton adresse complète" required />
+        <textarea name="trialMessage" placeholder="Dis-moi tes disponibilités ou ton objectif..." rows="4" required></textarea>
+        <button type="submit" class="btn-primary btn-large">Envoyer ma demande</button>
+        <div class="form-success" id="trialSuccess">Ton mail va s'ouvrir pour compléter l'envoi. Si rien ne se passe, copie l'adresse et envoie depuis ton application mail.</div>
+      </form>
     </div>
   </section>
 
@@ -341,7 +374,7 @@
   <!-- FOOTER -->
   <footer>
     <div class="container">
-      <span class="logo">noLackinDiscipline</span>
+      <span class="logo">nld-sport</span>
       <p>© 2026 — Fait pour ceux qui se présentent.</p>
       <p style="margin-top:12px;font-size:12px">
         <a href="mentions-legales.html" style="color:var(--text-muted);text-decoration:none;margin:0 10px">Mentions légales</a>
@@ -357,7 +390,7 @@
 
       <!-- Header modal -->
       <div class="devis-modal-header">
-        <span class="logo">NLD</span>
+        <span class="logo">nld-sport</span>
         <button class="devis-close" onclick="closeDevis()" aria-label="Fermer">✕</button>
       </div>
 

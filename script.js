@@ -22,6 +22,29 @@ function handleSubmit(e) {
   }, 400);
 }
 
+function handleTrialSubmit(e) {
+  e.preventDefault();
+  const form = e.target;
+  const firstname = form.querySelector('[name="trialFirstname"]').value.trim();
+  const lastname = form.querySelector('[name="trialLastname"]').value.trim();
+  const email = form.querySelector('[name="trialEmail"]').value.trim();
+  const phone = form.querySelector('[name="trialPhone"]').value.trim();
+  const address = form.querySelector('[name="trialAddress"]').value.trim();
+  const message = form.querySelector('[name="trialMessage"]').value.trim();
+
+  if (!firstname || !lastname || !email || !phone || !address) return;
+
+  const subject = encodeURIComponent('Demande de séance d\'essai 30€');
+  const body = encodeURIComponent(
+    `Nom : ${lastname}\nPrénom : ${firstname}\nEmail : ${email}\nTéléphone : ${phone}\nAdresse : ${address}\n\nMessage : ${message}`
+  );
+  const mail = 'contact@nld-sport.fr';
+  window.location.href = `mailto:${mail}?subject=${subject}&body=${body}`;
+
+  const success = document.getElementById('trialSuccess');
+  if (success) success.classList.add('visible');
+}
+
 // ============================================================
 // SYSTÈME DE DEVIS
 // ============================================================

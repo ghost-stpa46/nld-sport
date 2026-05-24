@@ -568,20 +568,44 @@ nav {
 }
 
 /* === CONTACT === */
-.contact {
+.contact,
+.trial {
   padding: 120px 0;
   border-top: 1px solid var(--border);
 }
 
-.contact .section-title {
+.contact .section-title,
+.trial .section-title {
   margin-bottom: 48px;
 }
 
-.contact-form {
+.contact-form,
+.trial-form {
   max-width: 680px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.trial-desc {
+  color: var(--text-muted);
+  font-size: 17px;
+  line-height: 1.8;
+  max-width: 760px;
+  margin-bottom: 32px;
+  font-weight: 300;
+}
+
+.trial-cta {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.trial-note {
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  font-size: 14px;
 }
 
 .form-row {
