@@ -34,7 +34,7 @@ function handleTrialSubmit(e) {
 
   if (!firstname || !lastname || !email || !phone || !address) return;
 
-  const subject = encodeURIComponent('Demande de séance d\'essai 30€');
+  const subject = encodeURIComponent('Demande de séance d\'essai gratuite');
   const body = encodeURIComponent(
     `Nom : ${lastname}\nPrénom : ${firstname}\nEmail : ${email}\nTéléphone : ${phone}\nAdresse : ${address}\n\nMessage : ${message}`
   );
