@@ -387,7 +387,45 @@
     window.handleRegister = async function(e) {
       e.preventDefault();
       const errBox = document.getElementById('registerError');
-      showErr(errBox, 'Inscription temporairement désactivée. Vérifie la configuration Supabase CORS.');
+      const successBox = document.getElementById('registerSuccess');
+      errBox.classList.remove('visible');
+      successBox.classList.remove('visible');
+
+      const prenom = document.getElementById('regPrenom').value.trim();
+      const nom = document.getElementById('regNom').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const coachCode = document.getElementById('regCoachCode').value.trim();
+      const btn = document.getElementById('registerBtn');
+
+      if (!prenom || !nom || !email || !password) { showErr(errBox, 'Merci de remplir tous les champs.'); return; }
+
+      setLoading(btn, true);
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prenom, nom, email, password, coachCode }),
+        });
+        const payload = await res.json();
+        if (!res.ok || payload.error) {
+          throw new Error(payload.error || 'Erreur lors de l\'inscription');
+        }
+
+        // Save session and set Supabase client session
+        if (payload.session) {
+          localStorage.setItem('nld_session', JSON.stringify(payload.session || {}));
+          try { await sb.auth.setSession(payload.session); } catch (e) { /* non-blocking */ }
+        }
+
+        successBox.classList.add('visible');
+        setTimeout(() => { window.location.href = 'dashboard-client.html'; }, 900);
+      } catch (err) {
+        console.error('Register error:', err);
+        showErr(errBox, err.message || 'Erreur lors de l\'inscription');
+      } finally {
+        setLoading(btn, false);
+      }
     };
 
     window.handleReset = async function(e) {
