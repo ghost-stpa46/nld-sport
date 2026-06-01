@@ -6,7 +6,7 @@
   "outputDirectory": "sport",
   "functions": {
     "api/**/*.js": {
-      "runtime": "nodejs20.x"
+      "runtime": "@vercel/node@3.2.22"
     }
   }
 }
