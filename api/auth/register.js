@@ -57,10 +57,11 @@ async function handler(req, res) {
     let json;
     try { json = JSON.parse(text); } catch (e) { json = { raw: text }; }
 
-    console.log('[register] supabase response', { status: resp.status, error: json?.error, message: json?.message });
+    console.log('[register] supabase response', { status: resp.status, body: json });
 
     if (!resp.ok || json.error) {
-      const message = json?.error_description || json?.error || json?.message || 'Inscription impossible.';
+      const message = json?.error_description || json?.error || json?.msg || json?.message
+        || (resp.status === 422 ? 'Email déjà utilisé ou mot de passe trop court.' : 'Inscription impossible.');
       console.error('[register] signup failed:', message);
       return jsonResponse(res, resp.status || 400, { error: message });
     }
