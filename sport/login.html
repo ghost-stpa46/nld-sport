@@ -241,7 +241,7 @@
     <!-- Toggle -->
     <div class="mode-toggle">
       <button class="mode-btn active" id="btnLogin" onclick="switchMode('login')">Connexion</button>
-      <button class="mode-btn" id="btnRegister" onclick="switchMode('register')">Créer un compte</button>
+      <button class="mode-btn" id="btnReset" onclick="switchMode('reset')">Mot de passe oublié</button>
     </div>
 
     <!-- PANEL LOGIN -->
@@ -286,42 +286,10 @@
       <button onclick="switchMode('login')" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;margin-top:10px;padding:0;text-decoration:underline">← Retour à la connexion</button>
     </div>
 
-    <!-- PANEL REGISTER -->
-    <div class="form-panel" id="panelRegister">
-      <h2 class="panel-title">Commence maintenant.</h2>
-      <p class="panel-subtitle">Réservé aux clients avec un abonnement actif.</p>
-      <form id="registerForm" onsubmit="handleRegister(event)" novalidate>
-        <div class="field-group">
-          <label for="regPrenom">Prénom</label>
-          <input type="text" id="regPrenom" placeholder="Ton prénom" autocomplete="given-name" required />
-        </div>
-        <div class="field-group">
-          <label for="regNom">Nom</label>
-          <input type="text" id="regNom" placeholder="Ton nom" autocomplete="family-name" required />
-        </div>
-        <div class="field-group">
-          <label for="regEmail">Email</label>
-          <input type="email" id="regEmail" placeholder="ton@email.com" autocomplete="email" required />
-        </div>
-        <div class="field-group">
-          <label for="regPassword">Mot de passe</label>
-          <input type="password" id="regPassword" placeholder="8 caractères minimum" autocomplete="new-password" required />
-        </div>
-        <div class="field-group">
-          <label for="regCoachCode">Code coach (optionnel)</label>
-          <input type="password" id="regCoachCode" placeholder="Laisse vide si tu es client" autocomplete="off" />
-        </div>
-        <button type="submit" class="btn-submit" id="registerBtn">
-          Créer mon compte
-          <span class="spinner"></span>
-        </button>
-      </form>
-      <div class="error-box" id="registerError"></div>
-      <div class="success-box" id="registerSuccess">
-        Compte créé ! Tu peux maintenant te connecter.
-      </div>
-    </div>
+    <!-- PAS DE PANEL REGISTER — inscription via lien coach uniquement -->
+    <div class="form-panel" id="panelRegister" style="display:none"></div>
 
+    <p style="text-align:center;margin-top:16px;font-size:12px;color:var(--text-muted)">Pas encore de compte ? Utilise le lien envoyé par ton coach.</p>
     <a href="index.html" class="back-link">← Retour au site</a>
   </div>
 
@@ -329,10 +297,9 @@
     // --- Toggle mode (hors module pour fonctionner même si Supabase échoue) ---
     function switchMode(mode) {
       document.getElementById('panelLogin').classList.toggle('active', mode === 'login');
-      document.getElementById('panelRegister').classList.toggle('active', mode === 'register');
       document.getElementById('panelReset').classList.toggle('active', mode === 'reset');
       document.getElementById('btnLogin').classList.toggle('active', mode === 'login');
-      document.getElementById('btnRegister').classList.toggle('active', mode === 'register');
+      document.getElementById('btnReset').classList.toggle('active', mode === 'reset');
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>

@@ -27,8 +27,9 @@
     <div class="client-list" id="clientList">
       <div class="loading-overlay"><span class="loading-spinner"></span> Chargement…</div>
     </div>
-    <div class="sidebar-footer">
-      <button class="btn btn-primary" style="width:100%" onclick="openModal('modalAddClient')">+ Ajouter un client</button>
+    <div class="sidebar-footer" style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-primary" style="width:100%" onclick="openModal('modalAddClient')">+ Inviter un client</button>
+      <button class="btn btn-secondary" style="width:100%" onclick="openModal('modalAddCoach')">+ Créer compte coach</button>
     </div>
   </aside>
 
@@ -445,62 +446,91 @@
 </div>
 
 <!-- MODAL : Ajouter client -->
+<!-- MODAL INVITER CLIENT -->
 <div class="modal-overlay" id="modalAddClient">
   <div class="modal modal-sm">
     <div class="modal-header">
-      <h3 class="modal-title">Ajouter un client</h3>
+      <h3 class="modal-title">Inviter un client</h3>
       <button class="modal-close" onclick="closeModal('modalAddClient')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="alert alert-info" style="margin-bottom:16px">
-        Un email d'invitation sera envoyé au client. Il devra définir son mot de passe.
-      </div>
-      <div class="form-grid">
-        <div class="form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div id="addClientForm">
+        <div class="form-grid">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="field-group"><label>Prénom</label><input type="text" id="nc_prenom" placeholder="Prénom" /></div>
+            <div class="field-group"><label>Nom</label><input type="text" id="nc_nom" placeholder="Nom" /></div>
+          </div>
+          <div class="field-group"><label>Email (optionnel)</label><input type="email" id="nc_email" placeholder="client@email.com" /></div>
+          <div class="field-group"><label>Téléphone</label><input type="tel" id="nc_tel" placeholder="06 00 00 00 00" /></div>
           <div class="field-group">
-            <label>Prénom *</label>
-            <input type="text" id="nc_prenom" placeholder="Prénom" />
+            <label>Objectif principal</label>
+            <select id="nc_objectif">
+              <option value="">Sélectionner…</option>
+              <option>Perte de poids</option>
+              <option>Prise de masse musculaire</option>
+              <option>Performance sportive</option>
+              <option>Remise en forme générale</option>
+              <option>Bien-être &amp; santé</option>
+              <option>Préparation compétition</option>
+              <option>Autre</option>
+            </select>
           </div>
           <div class="field-group">
-            <label>Nom *</label>
-            <input type="text" id="nc_nom" placeholder="Nom" />
+            <label>Niveau</label>
+            <select id="nc_niveau"><option value="Débutant">Débutant</option><option value="Intermédiaire">Intermédiaire</option><option value="Avancé">Avancé</option></select>
           </div>
         </div>
-        <div class="field-group">
-          <label>Email *</label>
-          <input type="email" id="nc_email" placeholder="client@email.com" />
-        </div>
-        <div class="field-group">
-          <label>Téléphone</label>
-          <input type="tel" id="nc_tel" placeholder="06 00 00 00 00" />
-        </div>
-        <div class="field-group">
-          <label>Objectif principal</label>
-          <select id="nc_objectif">
-            <option value="">Sélectionner…</option>
-            <option>Perte de poids</option>
-            <option>Prise de masse musculaire</option>
-            <option>Performance sportive</option>
-            <option>Remise en forme générale</option>
-            <option>Bien-être &amp; santé</option>
-            <option>Préparation compétition</option>
-            <option>Autre</option>
-          </select>
-        </div>
-        <div class="field-group">
-          <label>Niveau</label>
-          <select id="nc_niveau">
-            <option value="Débutant">Débutant</option>
-            <option value="Intermédiaire">Intermédiaire</option>
-            <option value="Avancé">Avancé</option>
-          </select>
-        </div>
+        <div id="addClientError" class="alert alert-error" style="display:none;margin-top:12px"></div>
       </div>
-      <div id="addClientError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+      <div id="addClientLink" style="display:none">
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Envoie ce lien au client (WhatsApp, SMS, email…) :</p>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="generatedLink" readonly style="flex:1;font-size:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text)" />
+          <button class="btn btn-primary btn-sm" onclick="copyInviteLink()">Copier</button>
+        </div>
+        <p id="copyConfirm" style="font-size:12px;color:#c8ff00;margin-top:6px;display:none">✓ Lien copié !</p>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:10px">⏳ Valable 7 jours · Usage unique</p>
+      </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modalAddClient')">Annuler</button>
-      <button class="btn btn-primary" onclick="addClient()">Envoyer l'invitation</button>
+      <button class="btn btn-ghost" onclick="closeModal('modalAddClient')">Fermer</button>
+      <button class="btn btn-primary" id="generateClientLinkBtn" onclick="generateInviteLink('client')">Générer le lien</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CRÉER COMPTE COACH -->
+<div class="modal-overlay" id="modalAddCoach">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 class="modal-title">Créer un compte coach</h3>
+      <button class="modal-close" onclick="closeModal('modalAddCoach')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="addCoachForm">
+        <div class="alert alert-info" style="margin-bottom:16px;font-size:13px">
+          Génère un lien d'inscription coach. La personne pourra créer son compte avec les droits coach.
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field-group"><label>Prénom</label><input type="text" id="coach_prenom" placeholder="Prénom" /></div>
+          <div class="field-group"><label>Nom</label><input type="text" id="coach_nom" placeholder="Nom" /></div>
+        </div>
+        <div class="field-group"><label>Email (optionnel)</label><input type="email" id="coach_email" placeholder="coach@email.com" /></div>
+        <div id="addCoachError" class="alert alert-error" style="display:none;margin-top:12px"></div>
+      </div>
+      <div id="addCoachLink" style="display:none">
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Envoie ce lien au nouveau coach :</p>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="generatedCoachLink" readonly style="flex:1;font-size:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text)" />
+          <button class="btn btn-primary btn-sm" onclick="copyCoachLink()">Copier</button>
+        </div>
+        <p id="copyCoachConfirm" style="font-size:12px;color:#c8ff00;margin-top:6px;display:none">✓ Lien copié !</p>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:10px">⏳ Valable 7 jours · Usage unique</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAddCoach')">Fermer</button>
+      <button class="btn btn-primary" id="generateCoachLinkBtn" onclick="generateInviteLink('coach')">Générer le lien</button>
     </div>
   </div>
 </div>
@@ -1523,48 +1553,66 @@ window.deleteCR = async function(id) {
 };
 
 // ────────────────────────────────────────────────────────────
-// ADD CLIENT
+// INVITE SYSTEM
 // ────────────────────────────────────────────────────────────
-window.addClient = async function() {
-  const prenom = document.getElementById('nc_prenom').value.trim();
-  const nom    = document.getElementById('nc_nom').value.trim();
-  const email  = document.getElementById('nc_email').value.trim();
+window.generateInviteLink = async function(role) {
+  const isCoach = role === 'coach';
+  const prefix  = isCoach ? 'coach' : 'nc';
+  const errId   = isCoach ? 'addCoachError' : 'addClientError';
+  const btnId   = isCoach ? 'generateCoachLinkBtn' : 'generateClientLinkBtn';
+  const linkDivId = isCoach ? 'addCoachLink' : 'addClientLink';
+  const formDivId = isCoach ? 'addCoachForm' : 'addClientForm';
+  const inputId   = isCoach ? 'generatedCoachLink' : 'generatedLink';
 
-  if (!prenom || !nom) { showModalError('addClientError', 'Prénom et nom requis.'); return; }
-  if (!email)          { showModalError('addClientError', 'Email requis.'); return; }
+  const prenom = document.getElementById(`${prefix}_prenom`)?.value.trim() || '';
+  const nom    = document.getElementById(`${prefix}_nom`)?.value.trim() || '';
+  const email  = document.getElementById(`${prefix}_email`)?.value.trim() || '';
+  const objectif  = !isCoach ? (document.getElementById('nc_objectif')?.value || '') : '';
+  const niveau    = !isCoach ? (document.getElementById('nc_niveau')?.value || '') : '';
+  const telephone = !isCoach ? (document.getElementById('nc_tel')?.value.trim() || '') : '';
 
-  // Si le client existe déjà dans profiles, on le lie juste au coach
-  const { data: existing } = await sb.from('profiles').select('id').eq('email', email).maybeSingle();
-  if (existing) {
-    await sb.from('profiles').update({ coach_id: currentCoach.id }).eq('id', existing.id);
-    closeModal('modalAddClient');
-    clearForm(['nc_prenom','nc_nom','nc_email','nc_tel']);
-    await loadClients();
-    return;
+  const btn = document.getElementById(btnId);
+  btn.disabled = true;
+  btn.textContent = 'Génération…';
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch('/api/auth/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ role, email: email || null, prenom: prenom || null, nom: nom || null, objectif: objectif || null, niveau: niveau || null, telephone: telephone || null }),
+    });
+    const data = await res.json();
+    if (!res.ok) { showModalError(errId, data.error || 'Erreur.'); return; }
+
+    document.getElementById(formDivId).style.display = 'none';
+    document.getElementById(linkDivId).style.display = 'block';
+    document.getElementById(inputId).value = data.link;
+    btn.style.display = 'none';
+  } catch (e) {
+    showModalError(errId, 'Erreur serveur.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Générer le lien';
   }
+};
 
-  // Sinon, on enregistre l'invitation en attente
-  const { error: pendingError } = await sb.from('pending_clients').upsert({
-    email,
-    prenom,
-    nom,
-    coach_id:  currentCoach.id,
-    objectif:  document.getElementById('nc_objectif').value || null,
-    niveau:    document.getElementById('nc_niveau').value || null,
-    telephone: document.getElementById('nc_tel').value.trim() || null,
-  }, { onConflict: 'email' });
-  if (pendingError) { showModalError('addClientError', 'Erreur : ' + pendingError.message); return; }
-
-  // Envoi du lien magique d'invitation
-  const { error: otpError } = await sb.auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: true }
+window.copyInviteLink = function() {
+  const input = document.getElementById('generatedLink');
+  navigator.clipboard.writeText(input.value).then(() => {
+    const confirm = document.getElementById('copyConfirm');
+    confirm.style.display = 'block';
+    setTimeout(() => { confirm.style.display = 'none'; }, 2000);
   });
-  if (otpError) { showModalError('addClientError', 'Erreur envoi email : ' + otpError.message); return; }
+};
 
-  closeModal('modalAddClient');
-  clearForm(['nc_prenom','nc_nom','nc_email','nc_tel']);
-  await loadClients();
+window.copyCoachLink = function() {
+  const input = document.getElementById('generatedCoachLink');
+  navigator.clipboard.writeText(input.value).then(() => {
+    const confirm = document.getElementById('copyCoachConfirm');
+    confirm.style.display = 'block';
+    setTimeout(() => { confirm.style.display = 'none'; }, 2000);
+  });
 };
 
 // ────────────────────────────────────────────────────────────
@@ -1633,6 +1681,19 @@ window.closeModal = function(id) {
   const errId = id.replace('modal','').toLowerCase() + 'Error';
   const errEl = document.getElementById(errId);
   if (errEl) errEl.style.display = 'none';
+  // Reset invite modals
+  if (id === 'modalAddClient') {
+    document.getElementById('addClientForm').style.display = 'block';
+    document.getElementById('addClientLink').style.display = 'none';
+    document.getElementById('generateClientLinkBtn').style.display = 'inline-flex';
+    ['nc_prenom','nc_nom','nc_email','nc_tel'].forEach(f => { const el = document.getElementById(f); if(el) el.value=''; });
+  }
+  if (id === 'modalAddCoach') {
+    document.getElementById('addCoachForm').style.display = 'block';
+    document.getElementById('addCoachLink').style.display = 'none';
+    document.getElementById('generateCoachLinkBtn').style.display = 'inline-flex';
+    ['coach_prenom','coach_nom','coach_email'].forEach(f => { const el = document.getElementById(f); if(el) el.value=''; });
+  }
 };
 
 // Close modal on overlay click

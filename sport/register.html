@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="icon" href="data:,">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Créer mon compte — noLackinDiscipline</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --accent: #c8ff00;
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface2: #1a1a1a;
+      --border: rgba(255,255,255,0.08);
+      --text: #ffffff;
+      --text-muted: #888888;
+      --font-display: 'Bebas Neue', cursive;
+      --font-body: 'Inter', sans-serif;
+      --red: #ff4444;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .bg-orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; }
+    .orb-1 { width: 500px; height: 500px; background: rgba(200,255,0,0.06); top: -150px; left: -150px; }
+    .orb-2 { width: 400px; height: 400px; background: rgba(200,255,0,0.04); bottom: -100px; right: -100px; }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 420px;
+      margin: 24px 16px;
+    }
+    .logo { font-family: var(--font-display); font-size: 36px; color: var(--accent); letter-spacing: 2px; }
+    .logo-sub { font-size: 11px; color: var(--text-muted); letter-spacing: 3px; text-transform: uppercase; display: block; margin-bottom: 28px; }
+
+    h2 { font-family: var(--font-display); font-size: 28px; letter-spacing: 1px; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+
+    .field-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .field-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .field-group input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .field-group input:focus { border-color: var(--accent); }
+    .field-group input:disabled { opacity: 0.5; }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity 0.2s;
+    }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.3); border-top-color: #000; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    .btn-submit.loading .spinner { display: block; }
+    .btn-submit.loading span:not(.spinner) { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-box { display: none; background: rgba(255,68,68,0.1); border: 1px solid rgba(255,68,68,0.3); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--red); margin-top: 12px; }
+    .error-box.visible { display: block; }
+    .success-box { display: none; background: rgba(200,255,0,0.1); border: 1px solid rgba(200,255,0,0.3); border-radius: 8px; padding: 16px; font-size: 14px; color: var(--accent); margin-top: 12px; text-align: center; }
+    .success-box.visible { display: block; }
+
+    .invalid-state { text-align: center; padding: 20px 0; }
+    .invalid-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .invalid-state p { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(200,255,0,0.12);
+      border: 1px solid rgba(200,255,0,0.3);
+      color: var(--accent);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    a.back { display: block; text-align: center; margin-top: 20px; font-size: 12px; color: var(--text-muted); text-decoration: none; }
+    a.back:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <div class="card">
+    <span class="logo">NLD</span>
+    <span class="logo-sub">noLackinDiscipline</span>
+
+    <div id="loadingState">
+      <p style="color:var(--text-muted);font-size:13px">Vérification du lien…</p>
+    </div>
+
+    <div id="invalidState" style="display:none" class="invalid-state">
+      <div class="icon">🔒</div>
+      <h2 style="margin-bottom:8px">Lien invalide</h2>
+      <p id="invalidMsg">Ce lien est invalide ou a déjà été utilisé.<br>Contacte ton coach pour obtenir un nouveau lien.</p>
+    </div>
+
+    <div id="formState" style="display:none">
+      <h2>Crée ton compte.</h2>
+      <p class="subtitle">Tu as été invité(e) par ton coach.</p>
+      <div id="roleBadge" class="role-badge"></div>
+
+      <form id="registerForm" onsubmit="handleRegister(event)" novalidate>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field-group">
+            <label>Prénom *</label>
+            <input type="text" id="regPrenom" placeholder="Prénom" autocomplete="given-name" required />
+          </div>
+          <div class="field-group">
+            <label>Nom *</label>
+            <input type="text" id="regNom" placeholder="Nom" autocomplete="family-name" required />
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Email *</label>
+          <input type="email" id="regEmail" placeholder="ton@email.com" autocomplete="email" required />
+        </div>
+        <div class="field-group">
+          <label>Mot de passe *</label>
+          <input type="password" id="regPassword" placeholder="8 caractères minimum" autocomplete="new-password" required />
+        </div>
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <span>Créer mon compte</span>
+          <span class="spinner"></span>
+        </button>
+      </form>
+
+      <div class="error-box" id="errorBox"></div>
+      <div class="success-box" id="successBox"></div>
+    </div>
+
+    <a href="login.html" class="back">← Retour à la connexion</a>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+
+    function showInvalid(msg) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('invalidState').style.display = 'block';
+      if (msg) document.getElementById('invalidMsg').textContent = msg;
+    }
+
+    function showForm(role, email, prenom, nom) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('formState').style.display = 'block';
+      const badge = document.getElementById('roleBadge');
+      badge.textContent = role === 'coach' ? '🏋️ Compte Coach' : '👤 Compte Client';
+      if (email) { document.getElementById('regEmail').value = email; document.getElementById('regEmail').disabled = true; }
+      if (prenom) document.getElementById('regPrenom').value = prenom;
+      if (nom) document.getElementById('regNom').value = nom;
+    }
+
+    async function init() {
+      if (!token) { showInvalid('Aucun lien d\'invitation détecté. Utilise le lien envoyé par ton coach.'); return; }
+
+      try {
+        const res = await fetch(`/api/auth/validate-invite?token=${token}`);
+        const data = await res.json();
+        if (!res.ok || data.error) { showInvalid(data.error || 'Lien invalide.'); return; }
+        showForm(data.role, data.email, data.prenom, data.nom);
+      } catch (e) {
+        showInvalid('Impossible de vérifier le lien. Réessaie plus tard.');
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const prenom   = document.getElementById('regPrenom').value.trim();
+      const nom      = document.getElementById('regNom').value.trim();
+      const email    = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const errBox   = document.getElementById('errorBox');
+      const successBox = document.getElementById('successBox');
+      const btn      = document.getElementById('submitBtn');
+
+      errBox.classList.remove('visible');
+      successBox.style.display = 'none';
+
+      if (!prenom || !nom || !email || !password) { errBox.textContent = 'Merci de remplir tous les champs.'; errBox.classList.add('visible'); return; }
+      if (password.length < 6) { errBox.textContent = 'Le mot de passe doit faire au moins 6 caractères.'; errBox.classList.add('visible'); return; }
+
+      btn.disabled = true;
+      btn.classList.add('loading');
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, prenom, nom, email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) { errBox.textContent = data.error || 'Inscription impossible.'; errBox.classList.add('visible'); return; }
+
+        document.getElementById('registerForm').style.display = 'none';
+        successBox.style.display = 'block';
+        successBox.innerHTML = '✅ Compte créé !<br><small style="opacity:0.7">Tu peux maintenant te connecter.</small>';
+        setTimeout(() => { window.location.href = 'login.html'; }, 2500);
+      } catch (err) {
+        errBox.textContent = 'Erreur serveur. Réessaie plus tard.';
+        errBox.classList.add('visible');
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

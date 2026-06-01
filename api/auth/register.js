@@ -1,86 +1,107 @@
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
-const COACH_CODE = process.env.COACH_CODE;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables');
-}
-
-const buildAnonHeaders = () => ({
+const anonHeaders = () => ({
   'Content-Type': 'application/json',
   apikey: SUPABASE_ANON_KEY,
   Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
 });
 
+const svcHeaders = () => ({
+  'Content-Type': 'application/json',
+  apikey: SUPABASE_SERVICE_ROLE_KEY,
+  Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+});
+
 const parseBody = async (req) => {
   if (req.body) return req.body;
   return new Promise((resolve, reject) => {
-    let body = '';
-    req.on('data', (chunk) => { body += chunk; });
-    req.on('end', () => {
-      try { resolve(body ? JSON.parse(body) : {}); } catch (err) { reject(err); }
-    });
+    let data = '';
+    req.on('data', c => { data += c; });
+    req.on('end', () => { try { resolve(data ? JSON.parse(data) : {}); } catch (e) { reject(e); } });
     req.on('error', reject);
   });
 };
 
-const jsonResponse = (res, status, payload) => {
+const json = (res, status, payload) => {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json');
   res.end(JSON.stringify(payload));
 };
 
-async function handler(req, res) {
-  if (req.method !== 'POST') return jsonResponse(res, 405, { error: 'Method not allowed' });
+module.exports = async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return json(res, 200, {});
+  if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
 
   let body;
-  try { body = await parseBody(req); } catch (e) {
-    return jsonResponse(res, 400, { error: 'Invalid JSON' });
+  try { body = await parseBody(req); } catch (e) { return json(res, 400, { error: 'Invalid JSON' }); }
+
+  const { token, prenom, nom, email, password } = body || {};
+  if (!token)    return json(res, 400, { error: "Lien d'invitation requis." });
+  if (!email || !password || !prenom || !nom) return json(res, 400, { error: 'Tous les champs sont requis.' });
+
+  // Valider le token
+  const tokenRes = await fetch(`${SUPABASE_URL}/rest/v1/invite_tokens?token=eq.${token}&used=eq.false&select=*`, {
+    headers: svcHeaders(),
+  });
+  const tokens = await tokenRes.json();
+  const invite = tokens?.[0];
+
+  if (!invite) return json(res, 400, { error: 'Lien invalide ou déjà utilisé.' });
+  if (new Date(invite.expires_at) < new Date()) {
+    return json(res, 400, { error: 'Ce lien a expiré. Demande un nouveau lien à ton coach.' });
   }
 
-  const { prenom, nom, email, password, coachCode } = body || {};
-  if (!email || !password) return jsonResponse(res, 400, { error: 'Email et mot de passe requis.' });
+  const role = invite.role || 'client';
 
-  // Validation du code coach côté serveur
-  const isCoach = coachCode && COACH_CODE && coachCode === COACH_CODE;
-  if (coachCode && !isCoach) {
-    return jsonResponse(res, 400, { error: 'Code coach invalide.' });
+  console.log('[register] signup attempt', { email, role });
+
+  // Créer le compte Supabase Auth
+  const signupRes = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+    method: 'POST',
+    headers: anonHeaders(),
+    body: JSON.stringify({ email, password, data: { prenom, nom } }),
+  });
+  const signupJson = await signupRes.json();
+
+  if (!signupRes.ok || signupJson.error) {
+    const message = signupJson?.error_description || signupJson?.error || signupJson?.msg
+      || (signupRes.status === 422 ? 'Email déjà utilisé ou mot de passe trop court (min. 6 caractères).' : 'Inscription impossible.');
+    console.error('[register] signup failed:', message);
+    return json(res, signupRes.status || 400, { error: message });
   }
 
-  const role = isCoach ? 'coach' : 'client';
+  const userId = signupJson.user?.id || signupJson.id;
 
-  try {
-    console.log('[register] signup attempt', { email, role, supabaseUrl: SUPABASE_URL?.substring(0, 30) });
+  // Marquer le token comme utilisé
+  await fetch(`${SUPABASE_URL}/rest/v1/invite_tokens?token=eq.${token}`, {
+    method: 'PATCH',
+    headers: svcHeaders(),
+    body: JSON.stringify({ used: true }),
+  });
 
-    const resp = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+  // Créer/mettre à jour le profil avec le bon rôle
+  if (userId) {
+    await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
       method: 'POST',
-      headers: buildAnonHeaders(),
+      headers: { ...svcHeaders(), Prefer: 'resolution=merge-duplicates' },
       body: JSON.stringify({
+        id: userId,
         email,
-        password,
-        data: { prenom: prenom || '', nom: nom || '', coach_code: isCoach ? coachCode : '' },
+        prenom,
+        nom,
+        role,
+        coach_id: invite.coach_id || null,
+        objectif: invite.objectif || null,
+        niveau: invite.niveau || null,
+        telephone: invite.telephone || null,
       }),
     });
-
-    const text = await resp.text();
-    let json;
-    try { json = JSON.parse(text); } catch (e) { json = { raw: text }; }
-
-    console.log('[register] supabase response', { status: resp.status, body: json });
-
-    if (!resp.ok || json.error) {
-      const message = json?.error_description || json?.error || json?.msg || json?.message
-        || (resp.status === 422 ? 'Email déjà utilisé ou mot de passe trop court.' : 'Inscription impossible.');
-      console.error('[register] signup failed:', message);
-      return jsonResponse(res, resp.status || 400, { error: message });
-    }
-
-    console.log('[register] signup success', { role });
-    return jsonResponse(res, 200, { role, session: json, user: json.user || null });
-  } catch (error) {
-    console.error('[register] proxy error:', error.message, error.stack);
-    return jsonResponse(res, 500, { error: 'Erreur serveur' });
   }
-}
 
-module.exports = handler;
+  console.log('[register] signup success', { role });
+  return json(res, 200, { role, user: signupJson.user || null });
+};
