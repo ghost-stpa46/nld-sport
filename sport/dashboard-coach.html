@@ -804,19 +804,39 @@ let weightChart    = null;
 // ────────────────────────────────────────────────────────────
 async function requireCoach() {
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'login.html'; return false; }
-
-  const { data: profile } = await sb
-    .from('profiles').select('*').eq('id', session.user.id).single();
-
-  if (!profile || profile.role !== 'coach') {
+  if (!session?.user?.id) {
+    console.error('Auth guard: no session, redirecting to login');
+    alert('Session invalide ou expirée. Merci de te reconnecter.');
     window.location.href = 'login.html';
     return false;
   }
-  currentCoach = profile;
-  document.getElementById('coachName').textContent = `${profile.prenom || ''} ${profile.nom || ''}`.trim() || 'Coach';
-  return true;
+
+  try {
+    const { data: profile, error } = await sb
+      .from('profiles').select('*').eq('id', session.user.id).single();
+
+    if (error || !profile || profile.role !== 'coach') {
+      console.error('Auth guard: profile invalid', { error, profile });
+      alert('Impossible de charger ton profil. Retour à la page de connexion.');
+      window.location.href = 'login.html';
+      return false;
+    }
+    currentCoach = profile;
+    document.getElementById('coachName').textContent = `${profile.prenom || ''} ${profile.nom || ''}`.trim() || 'Coach';
+    return true;
+  } catch (err) {
+    console.error('Auth error:', err);
+    window.location.href = 'login.html';
+    return false;
+  }
 }
+
+// Écoute les changements d'authentification pour re-rediriger si l'utilisateur se déconnecte
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_OUT' || !session?.user?.id) {
+    window.location.href = 'login.html';
+  }
+});
 
 // ────────────────────────────────────────────────────────────
 // INIT

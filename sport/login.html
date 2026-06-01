@@ -346,14 +346,24 @@
     }
 
     async function loginUser(email, password) {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      const payload = await response.json();
+      const text = await response.text();
+      let payload = null;
+      try {
+        payload = JSON.parse(text);
+      } catch (err) {
+        if (!response.ok) {
+          throw new Error(`Login API error ${response.status}: ${text}`);
+        }
+        throw new Error(`Réponse invalide du serveur : ${text}`);
+      }
       if (!response.ok) {
-        throw new Error(payload.error || 'Erreur de connexion');
+        const err = payload?.error || payload?.error_description || payload?.message || JSON.stringify(payload) || `Erreur de connexion (${response.status})`;
+        throw new Error(err);
       }
       return payload;
     }
@@ -372,9 +382,17 @@
       try {
         const result = await loginUser(email, password);
         localStorage.setItem('nld_session', JSON.stringify(result.session || {}));
-        if (result.session) {
-          await sb.auth.setSession(result.session);
+        if (result.session?.access_token && result.session?.refresh_token) {
+          await sb.auth.setSession({
+            access_token: result.session.access_token,
+            refresh_token: result.session.refresh_token
+          });
+          console.debug('Supabase session set, verifying...');
+          const { data: { session: verifiedSession } } = await sb.auth.getSession();
+          console.debug('Verified session', verifiedSession);
         }
+
+        await new Promise(resolve => setTimeout(resolve, 300));
         window.location.href = result.role === 'coach' ? 'dashboard-coach.html' : 'dashboard-client.html';
       } catch (error) {
         console.error('Login error:', error);
@@ -386,14 +404,93 @@
 
     window.handleRegister = async function(e) {
       e.preventDefault();
+      const prenom = document.getElementById('regPrenom').value.trim();
+      const nom = document.getElementById('regNom').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const coachCode = document.getElementById('regCoachCode').value.trim();
       const errBox = document.getElementById('registerError');
-      showErr(errBox, 'Inscription temporairement désactivée. Vérifie la configuration Supabase CORS.');
+      const successBox = document.getElementById('registerSuccess');
+
+      errBox.classList.remove('visible');
+      successBox.classList.remove('visible');
+
+      if (!prenom || !nom || !email || !password) {
+        showErr(errBox, 'Merci de remplir tous les champs.');
+        return;
+      }
+      if (!email.includes('@')) {
+        showErr(errBox, 'Adresse email invalide.');
+        return;
+      }
+      if (password.length < 8) {
+        showErr(errBox, 'Le mot de passe doit contenir au moins 8 caractères.');
+        return;
+      }
+
+      const btn = document.getElementById('registerBtn');
+      setLoading(btn, true);
+      try {
+        const { data, error } = await sb.auth.signUp(
+          { email, password },
+          { data: { first_name: prenom, last_name: nom, coach_code: coachCode || null } }
+        );
+        if (error) throw error;
+
+        const userId = data?.user?.id;
+        if (userId) {
+          const profilePayload = {
+            id: userId,
+            prenom,
+            nom,
+            email,
+            role: coachCode ? 'coach' : 'client'
+          };
+          const { error: profileError } = await sb.from('profiles').insert(profilePayload);
+          if (profileError) {
+            console.warn('Profile insert failed after signup', profileError);
+          }
+        }
+
+        successBox.textContent = 'Compte créé ! Vérifie ta boîte mail pour confirmer ton inscription.';
+        successBox.classList.add('visible');
+      } catch (error) {
+        console.error('Register error:', error);
+        showErr(errBox, error?.message || 'Impossible de créer le compte.');
+      } finally {
+        setLoading(btn, false);
+      }
     };
 
     window.handleReset = async function(e) {
       e.preventDefault();
+      const email = document.getElementById('resetEmail').value.trim();
+      const btn = document.getElementById('resetBtn');
       const errBox = document.getElementById('resetError');
-      showErr(errBox, 'Réinitialisation temporairement désactivée. Vérifie la configuration Supabase CORS.');
+      const successBox = document.getElementById('resetSuccess');
+
+      errBox.classList.remove('visible');
+      successBox.classList.remove('visible');
+
+      if (!email || !email.includes('@')) {
+        showErr(errBox, 'Adresse email invalide.');
+        return;
+      }
+
+      setLoading(btn, true);
+      try {
+        const redirectTo = `${window.location.origin}/reset-password.html`;
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+        if (error) throw error;
+
+        successBox.textContent = 'Lien envoyé ! Vérifie ta boîte mail.';
+        successBox.classList.add('visible');
+      } catch (error) {
+        console.error('Reset error:', error);
+        showErr(errBox, error?.message || 'Impossible d’envoyer le lien. Réessaie plus tard.');
+      } finally {
+        setLoading(btn, false);
+      }
     };
 
     function setLoading(btn, state) {
@@ -408,13 +505,11 @@
 
     function getFriendlyError(msg) {
       if (!msg) return 'Une erreur est survenue. Réessaie.';
-      if (msg.includes('Email ou mot de passe incorrect')) return 'Email ou mot de passe incorrect.';
-      if (msg.includes('Invalid login credentials') || msg.includes('invalid_grant')) return 'Email ou mot de passe incorrect.';
+      if (msg.includes('Email ou mot de passe incorrect') || msg.includes('Invalid login credentials') || msg.includes('invalid_grant')) return 'Email ou mot de passe incorrect.';
       if (msg.includes('Email not confirmed'))       return 'Confirme ton email avant de te connecter.';
-      if (msg.includes('Too many requests'))         return 'Trop de tentatives. Réessaie dans quelques minutes.';
+      if (msg.includes('Too many requests') || msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) return 'Trop de tentatives. Réessaie dans quelques minutes.';
       if (msg.includes('User already registered'))   return 'Un compte existe déjà avec cet email.';
       if (msg.includes('Password should be'))        return 'Le mot de passe doit faire au moins 8 caractères.';
-      if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) return 'Trop de tentatives. Réessaie dans quelques minutes.';
       return msg;
     }
   </script>
