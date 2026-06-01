@@ -431,27 +431,13 @@
       const btn = document.getElementById('registerBtn');
       setLoading(btn, true);
       try {
-        const { data, error } = await sb.auth.signUp({
-          email,
-          password,
-          options: { data: { prenom, nom, coach_code: coachCode || '' } }
+        const resp = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prenom, nom, email, password, coachCode }),
         });
-        if (error) throw error;
-
-        const userId = data?.user?.id;
-        if (userId) {
-          const profilePayload = {
-            id: userId,
-            prenom,
-            nom,
-            email,
-            role: coachCode ? 'coach' : 'client'
-          };
-          const { error: profileError } = await sb.from('profiles').insert(profilePayload);
-          if (profileError) {
-            console.warn('Profile insert failed after signup', profileError);
-          }
-        }
+        const result = await resp.json();
+        if (!resp.ok) throw new Error(result.error || 'Inscription impossible.');
 
         successBox.textContent = 'Compte créé ! Vérifie ta boîte mail pour confirmer ton inscription.';
         successBox.classList.add('visible');

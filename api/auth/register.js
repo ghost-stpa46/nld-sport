@@ -1,5 +1,6 @@
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const COACH_CODE = process.env.COACH_CODE;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables');
@@ -38,10 +39,18 @@ async function handler(req, res) {
   }
 
   const { prenom, nom, email, password, coachCode } = body || {};
-  if (!email || !password) return jsonResponse(res, 400, { error: 'Email and password required' });
+  if (!email || !password) return jsonResponse(res, 400, { error: 'Email et mot de passe requis.' });
+
+  // Validation du code coach côté serveur
+  const isCoach = coachCode && COACH_CODE && coachCode === COACH_CODE;
+  if (coachCode && !isCoach) {
+    return jsonResponse(res, 400, { error: 'Code coach invalide.' });
+  }
+
+  const role = isCoach ? 'coach' : 'client';
 
   try {
-    console.log('[register] signup attempt', { email, supabaseUrl: SUPABASE_URL?.substring(0, 30) });
+    console.log('[register] signup attempt', { email, role, supabaseUrl: SUPABASE_URL?.substring(0, 30) });
 
     const resp = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
       method: 'POST',
@@ -49,7 +58,7 @@ async function handler(req, res) {
       body: JSON.stringify({
         email,
         password,
-        options: { data: { prenom: prenom || '', nom: nom || '', coachCode: coachCode || '' } },
+        data: { prenom: prenom || '', nom: nom || '', coach_code: isCoach ? coachCode : '' },
       }),
     });
 
@@ -66,8 +75,8 @@ async function handler(req, res) {
       return jsonResponse(res, resp.status || 400, { error: message });
     }
 
-    console.log('[register] signup success');
-    return jsonResponse(res, 200, { session: json, user: json.user || null });
+    console.log('[register] signup success', { role });
+    return jsonResponse(res, 200, { role, session: json, user: json.user || null });
   } catch (error) {
     console.error('[register] proxy error:', error.message, error.stack);
     return jsonResponse(res, 500, { error: 'Erreur serveur' });
