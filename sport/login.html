@@ -431,10 +431,11 @@
       const btn = document.getElementById('registerBtn');
       setLoading(btn, true);
       try {
-        const { data, error } = await sb.auth.signUp(
-          { email, password },
-          { data: { first_name: prenom, last_name: nom, coach_code: coachCode || null } }
-        );
+        const { data, error } = await sb.auth.signUp({
+          email,
+          password,
+          options: { data: { prenom, nom, coach_code: coachCode || '' } }
+        });
         if (error) throw error;
 
         const userId = data?.user?.id;
