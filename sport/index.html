@@ -543,6 +543,19 @@
         alert(error.message || "Erreur de paiement. Réessaie plus tard.");
       }
     }
+
+    // Gestion retour Stripe après paiement
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true') {
+      document.querySelector('.payment-block') && (document.querySelector('.payment-block').style.display = 'none');
+      document.getElementById('successMsg').textContent = 'Paiement confirmé ! Ton coach va valider ta demande et t\'envoyer un lien pour créer ton compte. Surveille ta boîte mail.';
+      document.getElementById('paymentSuccess').classList.add('visible');
+      document.getElementById('paymentSuccess').scrollIntoView({ behavior: 'smooth' });
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    if (params.get('canceled') === 'true') {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   </script>
 </body>
 </html>

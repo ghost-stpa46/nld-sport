@@ -183,7 +183,7 @@ async function confirmVirement() {
   }
 
   showPaymentSuccess(
-    'Merci ! Un email de confirmation t\'a été envoyé. Tu peux dès maintenant créer ton compte. Référence : ' + devisNumero
+    'Merci pour ton paiement ! Ton coach va valider ta demande et t\'envoyer un lien personnalisé pour créer ton compte. Référence : ' + devisNumero
   );
 }
 
