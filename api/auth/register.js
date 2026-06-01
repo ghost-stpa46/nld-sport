@@ -1,3 +1,4 @@
+const { sendEmail, COACH_EMAIL } = require('../_mailer');
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -101,6 +102,25 @@ module.exports = async (req, res) => {
       }),
     });
   }
+
+  // Notifier le coach
+  await sendEmail({
+    to: COACH_EMAIL,
+    subject: `✅ Nouveau compte créé — ${prenom} ${nom}`,
+    html: `
+      <div style="font-family:Inter,sans-serif;max-width:500px;margin:0 auto;background:#0a0a0a;color:#fff;padding:32px;border-radius:12px">
+        <h2 style="color:#c8ff00;font-size:22px;margin-bottom:8px">Nouveau compte créé</h2>
+        <p style="color:#888;margin-bottom:24px">Un ${role === 'coach' ? 'coach' : 'client'} vient de s'inscrire sur noLackinDiscipline.</p>
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="color:#888;padding:8px 0;border-bottom:1px solid #222">Prénom</td><td style="padding:8px 0;border-bottom:1px solid #222">${prenom}</td></tr>
+          <tr><td style="color:#888;padding:8px 0;border-bottom:1px solid #222">Nom</td><td style="padding:8px 0;border-bottom:1px solid #222">${nom}</td></tr>
+          <tr><td style="color:#888;padding:8px 0;border-bottom:1px solid #222">Email</td><td style="padding:8px 0;border-bottom:1px solid #222">${email}</td></tr>
+          <tr><td style="color:#888;padding:8px 0">Rôle</td><td style="padding:8px 0;color:#c8ff00;font-weight:bold">${role}</td></tr>
+        </table>
+        <a href="https://nld-sport.vercel.app/dashboard-coach.html" style="display:inline-block;margin-top:24px;background:#c8ff00;color:#000;font-weight:bold;padding:12px 24px;border-radius:8px;text-decoration:none">Ouvrir le dashboard</a>
+      </div>
+    `,
+  });
 
   console.log('[register] signup success', { role });
   return json(res, 200, { role, user: signupJson.user || null });

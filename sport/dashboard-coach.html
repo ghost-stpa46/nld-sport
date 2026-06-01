@@ -112,6 +112,17 @@
           </div>
         </div>
 
+        <!-- PAIEMENTS EN ATTENTE -->
+        <div class="card" style="margin-top:24px;border:1px solid rgba(200,255,0,0.2)">
+          <div class="card-header">
+            <span class="card-title">💳 Paiements en attente de validation</span>
+            <span id="purchases_badge" style="display:none;background:var(--accent);color:#000;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px"></span>
+          </div>
+          <div id="purchases_list">
+            <div class="empty-state"><div class="empty-icon">💳</div><p class="empty-title">Aucun paiement en attente</p></div>
+          </div>
+        </div>
+
         <div class="card" style="margin-top:24px">
           <div class="card-header">
             <span class="card-title">Virements à confirmer</span>
@@ -1008,6 +1019,9 @@ async function loadOverview() {
     prospectsEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p class="empty-title">Aucun prospect</p></div>';
   }
 
+  // Paiements Stripe en attente
+  await loadPendingPurchases();
+
   // Liste clients
   const clientsEl = document.getElementById('ov_clients_list');
   if (clients?.length) {
@@ -1046,6 +1060,76 @@ function setDefaultDates() {
 // ────────────────────────────────────────────────────────────
 // CLIENTS
 // ────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────
+// PAIEMENTS EN ATTENTE
+// ────────────────────────────────────────────────────────────
+async function loadPendingPurchases() {
+  const { data: purchases } = await sb.from('purchases').select('*').eq('status', 'pending').order('created_at', { ascending: false });
+  const el = document.getElementById('purchases_list');
+  const badge = document.getElementById('purchases_badge');
+
+  if (!purchases?.length) {
+    badge.style.display = 'none';
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div><p class="empty-title">Aucun paiement en attente</p></div>';
+    return;
+  }
+
+  badge.textContent = purchases.length;
+  badge.style.display = 'inline';
+  el.innerHTML = purchases.map(p => `
+    <div id="purchase_row_${p.id}" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:13px;font-weight:600">${esc(p.customer_name || p.customer_email)}</div>
+        <div style="font-size:12px;color:var(--text-muted)">${esc(p.customer_email)} · ${formatDate(p.created_at)} · <span style="color:#c8ff00;font-weight:700">${(p.amount/100).toFixed(2)}€</span></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="acceptPurchase('${p.id}', '${esc(p.customer_email)}')">Accepter</button>
+        <button class="btn btn-ghost btn-sm" onclick="rejectPurchase('${p.id}')">Refuser</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.acceptPurchase = async function(purchaseId, email) {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch('/api/purchases/accept', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ purchase_id: purchaseId }),
+    });
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || 'Erreur.'); btn.disabled = false; btn.textContent = 'Accepter'; return; }
+
+    // Afficher le lien dans la rangée
+    const row = document.getElementById(`purchase_row_${purchaseId}`);
+    row.innerHTML = `
+      <div style="flex:1">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Lien d'inscription pour <strong>${esc(email)}</strong> :</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="text" value="${data.link}" readonly style="flex:1;min-width:200px;font-size:12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--text)" />
+          <button class="btn btn-primary btn-sm" onclick="navigator.clipboard.writeText('${data.link}').then(()=>this.textContent='✓ Copié!')">Copier</button>
+        </div>
+      </div>
+    `;
+    await loadPendingPurchases();
+  } catch (e) {
+    alert('Erreur serveur.');
+    btn.disabled = false;
+    btn.textContent = 'Accepter';
+  }
+};
+
+window.rejectPurchase = async function(purchaseId) {
+  if (!confirm('Refuser ce paiement ?')) return;
+  await sb.from('purchases').update({ status: 'rejected' }).eq('id', purchaseId);
+  await loadPendingPurchases();
+};
+
 async function loadClients() {
   const { data, error } = await sb
     .from('profiles')
